@@ -1,0 +1,132 @@
+﻿unit un_receive_from_web_server;
+
+interface
+
+uses
+  Classes,System.SysUtils,System.StrUtils,Vcl.Forms,Vcl.CheckLst,
+  IdHTTP,un_base_setes, general_web,tblSyncTable;
+
+type
+    TreceiveFromWebServer = Class(TBaseSetes)
+  private
+    procedure PreparaListBox;
+
+    procedure SyncTable(indice: Integer);
+    procedure send;
+
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+    procedure   inicializa; Override;
+    procedure   Execute;
+  End;
+
+implementation
+
+{ TreceiveFromWebServer }
+
+procedure TreceiveFromWebServer.PreparaListBox;
+Var
+  I: Integer;
+Begin
+  FlistBox.Items.Clear;
+  FListaSincronia.getListaReceber;
+  for I := 0 to FListaSincronia.ListaReceber.count - 1 do
+  Begin
+    FlistBox.Items.Add(FListaSincronia.ListaReceber[I].Tabela);
+  End;
+End;
+
+
+
+procedure TreceiveFromWebServer.SyncTable(indice: Integer);
+Var
+  I: Integer;
+  Lc_Increme : Integer;
+  LcReceiveWeb : TGeneralWeb;
+begin
+  try
+    SetProgressBar(FSincronia.Lista.count);
+    LcReceiveWeb := TGeneralSendFactory.Instanciar(FListaSincronia.registro.NomeClasse);
+    LcReceiveWeb.InstitutionDestino := FInstitutionDestino;
+    LcReceiveWeb.URL := FURL;
+    LcReceiveWeb.Metodo := 'Get';
+    LcReceiveWeb.EndPoint := FListaSincronia.registro.endPoint;
+    LcReceiveWeb.Inicializa;
+    for I := 0 to FSincronia.Lista.count - 1 do
+    Begin
+      TRy
+        Try
+          LcReceiveWeb.Codigo := FSincronia.Lista[I].Registro;
+          LcReceiveWeb.receive;
+        Finally
+          FSincronia.Clear;
+          FSincronia.Registro.Tabela    := FListaSincronia.Registro.Tabela;
+          FSincronia.Registro.Registro  := FSincronia.Lista[I].Registro;
+          FSincronia.Registro.LogResult := LcReceiveWeb.Retorno.Mensagem;
+          FSincronia.saveReturn;
+          case LcReceiveWeb.Retorno.ID of
+            200:Begin
+                  SetLastUpdate(FListaSincronia.registro.Tabela, FListaSincronia.registro.Tipo, 'R', FSincronia.Lista[I].Tempo);
+                end;
+          end;
+          updateMsgProcess(concat(FListaSincronia.registro.DescricaoProcesso, ' - ',
+          intToStr(progresso.MaxValue), ' / ',
+          intToStr(progresso.Progress + 1)), indice);
+        End;
+      Except
+        on e: Exception do
+        BEgin
+          // Se der Errado a proxima sincronia ser� a partir desta data e hora - 10 segundo
+          FSincronia.registro.LogResult := e.Message;
+          FSincronia.saveReturn;
+          // Se der certo a proxima sincronia ser� a partir desta data e hora + 01 segundo
+          SetLastUpdate(FListaSincronia.registro.Tabela, FListaSincronia.registro.Tipo, 'E', FSincronia.Lista[I].Tempo - StrToTime('00:01:00'));
+        End;
+      end;
+    End;
+  finally
+    LcReceiveWeb.Destroy;
+  end;
+end;
+
+procedure TreceiveFromWebServer.Receive;
+Var
+  I: Integer;
+begin
+  for I := 0 to FListaSincronia.ListaReceber.count - 1 do
+  Begin
+    FListaSincronia.ClonarObj(FListaSincronia.ListaReceber[I],FListaSincronia.registro);
+    if FListaSincronia.registro.ativo = 'S' then
+    Begin
+      SyncTable(I)
+    End;
+  End;
+end;
+
+constructor TreceiveFromWebServer.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
+
+destructor TreceiveFromWebServer.Destroy;
+begin
+  inherited;
+end;
+
+
+procedure TreceiveFromWebServer.inicializa;
+begin
+  inherited;
+end;
+
+procedure TreceiveFromWebServer.Execute;
+begin
+  if ValidaConexao then
+  Begin
+    PreparaListBox;
+    send;
+  End;
+end;
+
+end.
