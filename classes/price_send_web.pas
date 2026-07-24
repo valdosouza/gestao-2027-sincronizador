@@ -2,7 +2,8 @@ unit price_send_web;
 
 interface
 
-uses System.SysUtils,general_web,REST.Json, ControllerPreco,tblPrice;
+uses System.SysUtils,general_web,REST.Json, ControllerPreco,tblPrice,
+     System.JSON;
 
 Type
   TPriceSendWeb = class(TGeneralWeb)
@@ -16,6 +17,8 @@ Type
   end;
 
 implementation
+
+uses un_dm;
 
 { TGeneralWeb }
 
@@ -33,23 +36,30 @@ end;
 
 procedure TPriceSendWeb.GenerateJson;
 Var
-  LcObj: TPrice;
+  LcJson: TJSONObject;
 begin
 inherited;
     FCtrl.Registro.Codigo := FCodigo;
     FCtrl.getByCodigo;
     if FCtrl.exist then
   Begin
-      LcObj                 := TPrice.Create;
-      LcObj.Estabelecimento := FInstitutionDestino;
-      LcObj.Tabela          := FCtrl.Registro.CodigoTabela;
-      LcObj.Produto         := FCtrl.Registro.CodigoProduto;
-      LcObj.Preco           := FCtrl.Registro.Valor;
-      LcObj.Comissao        := FCtrl.Registro.AliComissao;
-      LcObj.Quantidade      := FCtrl.Registro.QtdeMinima;
-      LcObj.MargemLucro     := FCtrl.Registro.MargemLucro;
-      FStrJson              := TJson.ObjectToJsonString(LcObj);
-
+    // Contrato /price/sincronize: chave composta priceListId+productId — SEM
+    // id próprio, SEM institution (D12). 409 PRICE_LIST_NOT_SYNCED/
+    // PRODUCT_NOT_SYNCED são normais durante a carga (reenvio no próximo ciclo).
+    LcJson := TJSONObject.Create;
+    try
+      LcJson.AddPair('priceListId', TJSONNumber.Create(FCtrl.Registro.CodigoTabela));
+      LcJson.AddPair('productId', TJSONNumber.Create(FCtrl.Registro.CodigoProduto));
+      LcJson.AddPair('priceTag', TJSONNumber.Create(FCtrl.Registro.Valor));
+      LcJson.AddPair('aliqProfit', TJSONNumber.Create(FCtrl.Registro.MargemLucro));
+      LcJson.AddPair('aliqKickback', TJSONNumber.Create(FCtrl.Registro.AliComissao));
+      LcJson.AddPair('quantity', TJSONNumber.Create(FCtrl.Registro.QtdeMinima));
+      // decisao 8: le o DELETED real da tabela
+      LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_PRECO', 'PRC_CODIGO', FCodigo));
+      FStrJson := LcJson.ToJSON;
+    finally
+      LcJson.Free;
+    end;
   End;
 
 end;

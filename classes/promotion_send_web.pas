@@ -3,7 +3,7 @@ unit promotion_send_web;
 interface
 
 uses System.SysUtils,general_web,REST.Json,ControllerDskPromotion,
-     ObjPromotion;
+     ObjPromotion, System.JSON;
 
 Type
   TPromotionSendWeb = class(TGeneralWeb)
@@ -17,6 +17,8 @@ Type
   end;
 
 implementation
+
+uses un_dm;
 
 { TGeneralWeb }
 
@@ -34,7 +36,11 @@ end;
 
 procedure TPromotionSendWeb.GenerateJson;
 Var
-  LcObj: TObjPromotion;
+  LcJson: TJSONObject;
+  LcItems: TJSONArray;
+  LcItem: TJSONObject;
+  I: Integer;
+  LcDeleted: String;
 begin
   inherited;
 
@@ -47,11 +53,44 @@ begin
 
     FCtrl.Obj.Estabelecimento := FInstitutionDestino;
     FCtrl.Obj.Terminal:= FTerminal;
-//  Promocao.Obj.Descricao := FDESCRICAO;
+    // Mantida a técnica de resolução via FillDataObjeto (monta FCtrl.Obj.Promocao
+    // + FCtrl.Obj.Items) — só os NOMES das chaves do JSON mudam para o contrato
+    // novo, que é FLAT (sem aninhar em "Promocao") e usa camelCase.
     FCtrl.FillDataObjeto(FCtrl.Registro, FCtrl.Obj);
-    FStrJSon:= TJson.ObjectToJsonString(FCtrl.Obj);
-//  LcStrJSon:= FDataCM.SMPromotionClient.save(LcStrJSon);
-//  Result:= TJson.JsonToObject<TResult>(LcStrJSon);
+
+    LcJson := TJSONObject.Create;
+    try
+      // Contrato /promotion/sincronize: id = registro local ✅; Estabelecimento
+      // NÃO viaja (D12). items = SNAPSHOT (itens fora da lista viram deleted='S'
+      // no servidor); 409 PRODUCT_NOT_SYNCED é normal durante a carga.
+      LcJson.AddPair('id', TJSONNumber.Create(FCtrl.Obj.Promocao.Codigo));
+      LcJson.AddPair('description', FCtrl.Obj.Promocao.Descricao);
+      LcJson.AddPair('priceTag', TJSONNumber.Create(FCtrl.Obj.Promocao.Preco));
+      LcJson.AddPair('quantity', TJSONNumber.Create(FCtrl.Obj.Promocao.Quantidade));
+      LcJson.AddPair('active', FCtrl.Obj.Promocao.Ativo);
+      // TODO: Firebird (TB_PROMOTION) não tem campo equivalente a "oper" — null.
+      LcJson.AddPair('oper', TJSONNull.Create);
+      // decisao 8: le o DELETED real da tabela
+      LcDeleted := DM.GetDeletedFlag('TB_PROMOTION', 'ID', FCodigo);
+      LcJson.AddPair('deleted', LcDeleted);
+
+      LcItems := TJSONArray.Create;
+      for I := 0 to FCtrl.Obj.Items.Count - 1 do
+      Begin
+        LcItem := TJSONObject.Create;
+        LcItem.AddPair('productId', TJSONNumber.Create(FCtrl.Obj.Items[I].Produto));
+        // TODO: TPromotionItems/tb_promotion_items não tem campo "oper" — null.
+        LcItem.AddPair('oper', TJSONNull.Create);
+        // decisao 8: item herda o DELETED do registro pai
+        LcItem.AddPair('deleted', LcDeleted);
+        LcItems.Add(LcItem);
+      End;
+      LcJson.AddPair('items', LcItems);
+
+      FStrJSon := LcJson.ToJSON;
+    finally
+      LcJson.Free;
+    end;
 
   End;
 end;

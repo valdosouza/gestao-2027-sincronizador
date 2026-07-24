@@ -62,7 +62,7 @@
         <DCC_WriteableConstants>true</DCC_WriteableConstants>
         <DCC_DebugDCUs>true</DCC_DebugDCUs>
         <DCC_DebugInfoInTds>true</DCC_DebugInfoInTds>
-        <DCC_UnitSearchPath>Controller;model;framework;Repository;..\..\migration\Api\src\model;..\..\migration\Api\src\\controller;..\..\migration\Api\src\parameter;..\..\migration\Api\src\data_objetcs;..\..\migration\Api\orm;C:\migration\Api\src\parameter;..\componentes;function;classes;..\share\json_objects;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>framework;Repository;function;classes;destiny\model;origen\model;origen\Controller;destiny\data_objetcs;destiny\controller;destiny\framework;destiny\parameter;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcpOutput>..\..\..\Bin\Sincronizador\temp\</DCC_DcpOutput>
         <VerInfo_Locale>1046</VerInfo_Locale>
         <DCC_UsePackage>vcl;rtl;vclx;indy;inet;xmlrtl;vclie;inetdbbde;inetdbxpress;dbrtl;dsnap;dsnapcon;vcldb;soaprtl;VclSmp;dbexpress;dbxcds;inetdb;bdertl;vcldbx;webdsnap;websnap;adortl;ibxpress;teeui;teedb;tee;dss;visualclx;visualdbclx;vclactnband;vclshlctrls;IntrawebDB_50_70;Intraweb_50_70;dclOfficeXP;QR4RunD7;DELPRINT7;RvBarcode;RvCore;RvGraphics;RvEngine;RvReport;RvStandard;$(DCC_UsePackage)</DCC_UsePackage>
@@ -137,7 +137,6 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <BT_BuildType>Debug</BT_BuildType>
-        <DCC_UnitSearchPath>C:\Sincronizador\model;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -162,7 +161,6 @@
             <Form>BaseForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="..\share\json_objects\json_category.pas"/>
         <DCCReference Include="function\un_receive_from_web_server.pas"/>
         <DCCReference Include="classes\receive\order_sale_receive_web.pas"/>
         <BuildConfiguration Include="Debug">
@@ -186,6 +184,7 @@
                     <Source Name="MainSource">Sincronizador.dpr</Source>
                 </Source>
                 <Excluded_Packages>
+                    <Excluded_Packages Name="D:\Componentes\ADRIFood\Source\Source_10_2\pkgADRIFood.bpl">File D:\Componentes\ADRIFood\Source\Source_10_2\pkgADRIFood.bpl not found</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k250.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp250.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
@@ -195,7 +194,7 @@
                 <Platform value="Win64">False</Platform>
             </Platforms>
             <Deployment Version="3">
-                <DeployFile LocalName="C:\Bin\Sincronizador\Sincronizador.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="D:\Bin\Sincronizador\Sincronizador.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>Sincronizador.exe</RemoteName>
                         <Overwrite>true</Overwrite>

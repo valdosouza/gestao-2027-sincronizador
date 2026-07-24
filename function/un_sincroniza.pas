@@ -6,7 +6,7 @@ uses
    SysUtils, Classes, DB, IBCustomDataSet, IBTable, IBDatabase, IBQuery,
    IBUpdateSQL, IBSQL,forms,dialogs, windows,Graphics,ExtCtrls,Gauges,
    jpeg, pngimage, ControllerPedido, un_sistema, un_receive_from_web_server,
-  un_dm,  un_send_to_web_server,
+  un_dm,  un_send_to_web_server, un_base_setes,
    Vcl.StdCtrls,  UnFunctions;
 
 
@@ -61,12 +61,16 @@ Var
   LcInstitutionOrigem : Integer;
   LcUrl : String;
   LcCnpj : String;
+  LcApiKey : String;
 begin
   FReceiveFromWEb     := ( Fc_Aq_Geral('L','SISWEB', 'ReceiveWebServer','S') = 'S');
   FSendToWEb          := ( Fc_Aq_Geral('L','SISWEB', 'SendToWebServer','S') = 'S');
   LcInstitutionOrigem := StrToIntDef(Fc_Aq_Geral('L','SISWEB', 'institution_origem','1'),1);
   LcUrl               := Fc_Aq_Geral('L', 'SISWEB', 'FPathURL','0');
   LcCnpj              := Fc_Aq_Geral('L','SISWEB', 'CNPJ','');
+  // D12 (revisão do sincronizador): chave de instalação — cadastrada em
+  // setes_central.tb_sync_api_key, configurada aqui junto com a URL.
+  LcApiKey            := Fc_Aq_Geral('L','SISWEB', 'FApiKey','');
 
 
   //Recebe dados do Servidor  - Pedidos para Terminal 1 / Mercadoria para outros terminais
@@ -78,9 +82,17 @@ begin
     ReceiveFromWeb.InstiturionOrigem := LcInstitutionOrigem;
     ReceiveFromWeb.CNPJ := LcCnpj;
     ReceiveFromWeb.URL := LcUrl;
+    ReceiveFromWeb.ApiKey := LcApiKey;
     ReceiveFromWeb.Database := DM.IBD_Gestao;
 
     ReceiveFromWeb.Execute;
+  End;
+
+  // Parada graciosa pedida durante o recebimento: nao inicia o envio
+  if TBaseSetes.PararSolicitado then
+  Begin
+    FSendToWEb := False;
+    Exit;
   End;
 
   if FSendToWEb then
@@ -91,6 +103,7 @@ begin
     SendToWeb.InstiturionOrigem := LcInstitutionOrigem;
     SendToWeb.CNPJ := LcCnpj;
     SendToWeb.URL := LcUrl;
+    SendToWeb.ApiKey := LcApiKey;
     SendToWeb.Database := DM.IBD_Gestao;
 
     SendToWeb.Execute;

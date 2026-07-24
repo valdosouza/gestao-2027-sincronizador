@@ -1,8 +1,8 @@
-unit brand_send_web;
+﻿unit brand_send_web;
 
 interface
 
-uses System.SysUtils,general_web,REST.Json,ControllerMarcaProduto,json_brand;
+uses System.SysUtils,general_web,REST.Json,ControllerMarcaProduto, System.JSON;
 
 Type
   TBrandSendWeb = class(TGeneralWeb)
@@ -16,6 +16,8 @@ Type
   end;
 
 implementation
+
+uses un_dm;
 
 { TGeneralWeb }
 
@@ -33,20 +35,24 @@ end;
 
 procedure TBrandSendWeb.GenerateJson;
 Var
-  LcObj: TJsonBrand;
+  LcJson: TJSONObject;
 begin
   inherited;
-      FCtrl.Registro.Codigo := FCodigo;
-      FCtrl.getbyId;
-      if FCtrl.exist then
+  FCtrl.Registro.Codigo := FCodigo;
+  FCtrl.getbyId;
+  if FCtrl.exist then
   Begin
-      LcObj                   := TJsonBrand.Create;
-      LcObj.tb_institution_id := FInstitutionDestino;
-      LcObj.id                := FCtrl.Registro.Codigo;
-      LcObj.description       := FCtrl.Registro.Descricao;
-
-      FStrJSon              := TJson.ObjectToJsonString(LcObj);
-
+    // Contrato /brand/sincronize: SEM id, SEM institution (catálogo central,
+    // dedupe por descrição — MRC_CODIGO local é descartado, D17/D12).
+    LcJson := TJSONObject.Create;
+    try
+      LcJson.AddPair('description', FCtrl.Registro.Descricao);
+      // decisao 8: le o DELETED real da tabela
+      LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_MARCA_PRODUTO', 'MRC_CODIGO', FCodigo));
+      FStrJSon := LcJson.ToJSON;
+    finally
+      LcJson.Free;
+    end;
   End;
 end;
 

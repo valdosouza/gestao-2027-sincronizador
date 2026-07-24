@@ -3,7 +3,8 @@ unit stock_balance_send_web;
 
 interface
 
-uses System.SysUtils,general_web,REST.Json, ControllerEstoque,tblStockBalance;
+uses System.SysUtils,general_web,REST.Json, ControllerEstoque,tblStockBalance,
+     System.JSON;
 
 Type
   TStockBalanceSendWeb = class(TGeneralWeb)
@@ -17,6 +18,8 @@ Type
   end;
 
 implementation
+
+uses un_dm;
 
 { TGeneralWeb }
 
@@ -34,22 +37,28 @@ end;
 
 procedure TStockBalanceSendWeb.GenerateJson;
 Var
-  LcObj: TStockBalance;
+  LcJson: TJSONObject;
 begin
   inherited;
     FCtrl.Registro.Codigo := FCodigo;
     FCtrl.getByCodigo;
     if FCtrl.exist then
   Begin
-    LcObj                  := TStockBalance.Create;
-    LcObj.Estabelecimento  := FInstitutionDestino;
-    LcObj.Tabela           := FCtrl.Registro.CodigoEstoque;
-    LcObj.Mercadoria       := FCtrl.Registro.CodigoProduto;
-    LcObj.Quantidade       := FCtrl.Registro.QtdeDisp;
-    LcObj.Minimo           := FCtrl.Registro.QtdeMinima;
-  //  FCtrl.fillDataObjeto(FCtrl.Registro);
-    FStrJSon               := TJson.ObjectToJsonString(LcObj);
-
+    // Contrato /stock-balance/sincronize: SEM id (tb_stock_balance própria,
+    // chave stockListId+merchandiseId); Estabelecimento NÃO viaja (D12).
+    // 409 STOCK_LIST_NOT_SYNCED/MERCHANDISE_NOT_SYNCED são normais na carga.
+    LcJson := TJSONObject.Create;
+    try
+      LcJson.AddPair('stockListId', TJSONNumber.Create(FCtrl.Registro.CodigoEstoque));
+      LcJson.AddPair('merchandiseId', TJSONNumber.Create(FCtrl.Registro.CodigoProduto));
+      LcJson.AddPair('quantity', TJSONNumber.Create(FCtrl.Registro.QtdeDisp));
+      LcJson.AddPair('minimum', TJSONNumber.Create(FCtrl.Registro.QtdeMinima));
+      // decisao 8: le o DELETED real da tabela
+      LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_ESTOQUE', 'EST_CODIGO', FCodigo));
+      FStrJSon := LcJson.ToJSON;
+    finally
+      LcJson.Free;
+    end;
   End;
 end;
 

@@ -1,9 +1,9 @@
-unit measure_send_web;
+﻿unit measure_send_web;
 
 
 interface
 
-uses System.SysUtils,general_web,REST.Json, ControllerMedida,json_measure;
+uses System.SysUtils,general_web,REST.Json, ControllerMedida, System.JSON;
 
 Type
   TMeasureSendWeb = class(TGeneralWeb)
@@ -17,6 +17,8 @@ Type
   end;
 
 implementation
+
+uses un_dm;
 
 { TGeneralWeb }
 
@@ -34,20 +36,27 @@ end;
 
 procedure TMeasureSendWeb.GenerateJson;
 Var
-  LcObj: TJsonMeasure;
+  LcJson: TJSONObject;
 begin
   inherited;
   FCtrl.Registro.Codigo := FCodigo;
   FCtrl.getbyid;
   if FCtrl.exist then
   Begin
-    LcObj                   := TJsonMeasure.Create;
-    LcObj.id                := 0;
-    LcObj.description       := FCtrl.Registro.Descricao;
-    LcObj.abbreviation      := FCtrl.Registro.Abreviatura;
-    LcObj.escale            := FCtrl.Registro.Escala;
-    LcObj.tb_institution_id := FInstitutionDestino;
-    FStrJson                := TJson.ObjectToJsonString(LcObj);
+    // Contrato /measure/sincronize (endpoint NOVO): SEM id, SEM institution —
+    // catálogo central, dedupe por descrição (mesmo padrão do brand/package).
+    LcJson := TJSONObject.Create;
+    try
+      LcJson.AddPair('description', FCtrl.Registro.Descricao);
+      LcJson.AddPair('abbreviation', FCtrl.Registro.Abreviatura);
+      // MED_ESCALA é String no Firebird (ex.: '1') — convertido para número.
+      LcJson.AddPair('escale', TJSONNumber.Create(StrToIntDef(FCtrl.Registro.Escala, 1)));
+      // decisao 8: le o DELETED real da tabela
+      LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_MEDIDA', 'MED_CODIGO', FCodigo));
+      FStrJson := LcJson.ToJSON;
+    finally
+      LcJson.Free;
+    end;
   End;
 end;
 

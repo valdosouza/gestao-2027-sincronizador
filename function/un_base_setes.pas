@@ -19,11 +19,15 @@ type
       procedure setFDevice                 (const Value: Integer);
       procedure setFCNPJ                   (const Value: String);
       procedure setFURL                    (const Value: String);
+      procedure setFApiKey                 (const Value: String);
       procedure setFInstiturionOrigem      (const Value: Integer);
 
     protected
       FCNPJ: String;
       FURL: String;
+      // D12 (revisão do sincronizador): chave de instalação (SISWEB\FApiKey no
+      // registro), threaded até TGeneralWeb.ApiKey em cada classe de envio.
+      FApiKey: String;
       FInstitutionDestino: Integer;
       FInstiturionOrigem: Integer;
       FlistBox: TListBox;
@@ -45,6 +49,11 @@ type
 
       function ValidaConexao:boolean;
     public
+      // Parada graciosa: setado pela UI (FormCloseQuery) quando o usuario
+      // pede para fechar durante uma sincronia — os loops de envio/recebi-
+      // mento checam entre registros e terminam o registro atual antes de
+      // parar (checkpoint e SRC_LOG ficam consistentes).
+      class var PararSolicitado: Boolean;
       progresso: TGauge;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -57,6 +66,7 @@ type
       property Device            : Integer read FDevice write setFDevice;
       property CNPJ              : String read FCNPJ write setFCNPJ;
       property URL               : String read FURL write setFURL;
+      property ApiKey            : String read FApiKey write setFApiKey;
   End;
 
 implementation
@@ -136,6 +146,11 @@ begin
   FCNPJ := Value;
 end;
 
+procedure TBaseSetes.setFApiKey(const Value: String);
+begin
+  FApiKey := Value;
+end;
+
 
 procedure TBaseSetes.setFDatabase(const Value: TIBDatabase);
 begin
@@ -170,21 +185,10 @@ begin
 end;
 
 procedure TBaseSetes.SetLastUpdate(pTabela,pTipo,pSentido: String; tempo: TDateTime);
-Var
-  LcStrDataTime : String;
 begin
-  with FSincronia.SyncClient.Registro do
-  Begin
-    Codigo := pTabela;
-    Tipo := pTipo;
-    Sentido := pSentido;
-    LcStrDataTime := DateTimeToStr(Tempo);
-    //13/12/2017 01:37:38
-    Data := StrToDate(Copy(LcStrDataTime,1,10));
-    Hora := StrToTimeDef(Copy(LcStrDataTime,12,8 ),StrToTime('00:00:00'));
-  End;
-  FSincronia.SyncClient.Estabel := FInstiturionOrigem;
-  FSincronia.SyncClient.save;
+  // Checkpoint em TB_LISTA_SINCRONIA.LAST_UPDATE (decisoes 1 e 3) —
+  // granularidade = PK do catalogo (WAY + DESC_TABELA + KIND).
+  FListaSincronia.SetLastUpdate(pSentido, pTabela, pTipo, tempo);
 end;
 
 procedure TBaseSetes.SetProgressBar(MaxValue: Integer);

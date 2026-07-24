@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Data.DB, IBX.IBCustomDataSet, IBX.IBQuery,
-  IBX.IBDatabase, IBX.IBSQL, listatrigger, FireDAC.Stan.Intf,IniFiles,
+  IBX.IBDatabase, IBX.IBSQL, FireDAC.Stan.Intf,IniFiles,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.MySQL, FireDAC.Phys.MySQLDef, FireDAC.VCLUI.Wait,
@@ -31,14 +31,42 @@ type
     { Private declarations }
   public
     { Public declarations }
-    function ListTrigger:TListaTrigger;
-    procedure execTrigger;
     procedure setBDCrud(BD:TIBDatabase);
     procedure ExecConsulta(SqlTxt: String);
     procedure ExecComando(SqlTxt: String);
     procedure AtivaTrigger(op: Boolean);
     procedure ConectaBancoLocal;
     procedure ConectaBancoServidor;
+    // Bootstrap do banco do cliente (Infra-IA/Sincronizador/prompt_construcao_
+    // banco_cliente.md, decisoes 1-10) - prepara o Firebird inteiro sem SQL
+    // manual: TB_SINCRONIA + generator/trigger, TB_LISTA_SINCRONIA + seed +
+    // LAST_UPDATE, DELETED universal, EXTERNALCODE e triggers TG_SRC_*.
+    // Todo DDL usa apenas sintaxe valida no Firebird 2.5 E 5.0 (decisao 10).
+    function  TabelaExiste(const ANomeTabela: String): Boolean;
+    function  TabelaVazia(const ANomeTabela: String): Boolean;
+    function  CampoExiste(const ANomeTabela, ANomeCampo: String): Boolean;
+    function  GeneratorExiste(const ANomeGenerator: String): Boolean;
+    procedure EnsureSincroniaTable;
+    procedure DropSyncTable;
+    procedure EnsureListaSincroniaTable;
+    procedure SeedListaSincroniaIfEmpty;
+    procedure EnsureDeletedColumns;
+    procedure EnsureExternalCode;
+    procedure EnsureTriggers;
+    procedure EnsureSincronia;
+    // Motor de reindexação (D3/D4): resolve o CPF/CNPJ real a partir do
+    // código interno do Firebird (EMP_CODIGO) — usado por toda classe de
+    // envio que hoje só manda o código local onde o contrato novo exige
+    // *Document (customerDocument/salesmanDocument/providerDocument/...).
+    // '' quando o código é 0/inexistente/sem documento cadastrado.
+    function GetDocumentByEmpCodigo(pCodigoEmpresa: Integer): String;
+    // Le o flag DELETED real do registro (decisao 8) - usado pelas classes
+    // *_send_web para montar o payload; 'N' quando registro/coluna ausente.
+    function GetDeletedFlag(const pTabela, pCampoChave: String; pCodigo: Integer): String;
+  public
+    // Gate (criterio de sucesso 2): a sincronizacao so e liberada quando o
+    // bootstrap completou sem erro nesta execucao.
+    BootstrapOk : Boolean;
   end;
 
 var
@@ -48,7 +76,7 @@ implementation
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
-uses uMain, un_funcoes, un_sistema;
+uses uMain, un_funcoes, un_sistema, un_sincronia_seed, UnFunctions;
 
 {$R *.dfm}
 
@@ -127,8 +155,21 @@ end;
 
 procedure TDM.DataModuleCreate(Sender: TObject);
 begin
+  BootstrapOk := False;
   ConectaBancoLocal;
   ConectaBancoServidor;
+  // Bootstrap completo do banco do cliente sem SQL manual (decisoes 1-10) -
+  // so roda se o banco local conectou; falha mantem BootstrapOk = False e a
+  // sincronizacao fica bloqueada (gate no uMain), sem derrubar o app.
+  if IBD_Gestao.Connected then
+  Begin
+    try
+      EnsureSincronia;
+    except
+      on E: Exception do
+        GeralogCrashlytics('TDM.EnsureSincronia', E.Message);
+    end;
+  End;
 end;
 
 procedure TDM.DataModuleDestroy(Sender: TObject);
@@ -170,115 +211,320 @@ begin
 end;
 
 
-procedure TDM.execTrigger;
-Var
-  LcTrigger : TTrigger;
-  LcListaTrigger : TListaTrigger;
-  I : Integer;
-  LcInsertSincronia : String;
-begin
-  LcInsertSincronia := ' INSERT INTO TB_SINCRONIA(SRC_CODIGO, SRC_TABELA, SRC_CHAVE, SRC_OPER,SRC_REGISTRO, SRC_TIME) VALUES( ';
-  LcTrigger := TTrigger.Create;
-  LcListaTrigger := ListTrigger;
-  with IBSQL do
-  Begin
-    Database := IBD_GEstao;
-    for I := 0 to LcListaTrigger.Count - 1 do
-    Begin
-      //DELETE
-      if not Transaction.InTransaction then Transaction.StartTransaction;
-      sql.Clear;
-      LcTrigger := LcListaTrigger.Items[I];
-      sql.Add(concat(
-              'CREATE OR ALTER TRIGGER TG_SRC_DEL_',LcTrigger.Tabela, ' FOR TB_',LcTrigger.Tabela,
-              ' ACTIVE AFTER DELETE POSITION 0 ',
-              'AS begin ',LcInsertSincronia,'0,','''TB_',LcTrigger.Tabela,''',''',LcTrigger.Campo,''',''D'',''OLD.','',LcTrigger.Campo,'',''',CURRENT_TIMESTAMP);end '
-      ));
-      Prepare;
-      ExecQuery;
-      if Transaction.InTransaction then Transaction.Commit;
-      //UPDATE
-      if not Transaction.InTransaction then Transaction.StartTransaction;
-      sql.Clear;
-      sql.Add(concat(
-              'CREATE OR ALTER TRIGGER TG_SRC_EDI_',LcTrigger.Tabela, ' FOR TB_',LcTrigger.Tabela,
-              ' ACTIVE AFTER UPDATE POSITION 0 ',
-              'AS begin ',LcInsertSincronia,'0,','''TB_',LcTrigger.Tabela,''',''',LcTrigger.Campo,''',''U'',''OLD.','',LcTrigger.Campo,'',''',CURRENT_TIMESTAMP);end '
-      ));
-      Prepare;
-      ExecQuery;
-      if Transaction.InTransaction then Transaction.Commit;
-      //insert
-      if not Transaction.InTransaction then Transaction.StartTransaction;
-      sql.Clear;
-      sql.Add(concat(
-              'CREATE OR ALTER TRIGGER TG_SRC_INS_',LcTrigger.Tabela, ' FOR TB_',LcTrigger.Tabela,
-              ' ACTIVE AFTER INSERT POSITION 0 ',
-              'AS begin ',LcInsertSincronia,'0,','''TB_',LcTrigger.Tabela,''',''',LcTrigger.Campo,''',''I'',''NEW.','',LcTrigger.Campo,'',''',CURRENT_TIMESTAMP);end '
-      ));
-      Prepare;
-      ExecQuery;
-      if Transaction.InTransaction then Transaction.Commit;
+{ ---------------------------------------------------------------------
+  Bootstrap do banco do cliente (prompt_construcao_banco_cliente.md).
+  Roda a cada start do Sincronizador (DataModuleCreate); idempotente:
+  cada passo verifica os metadados (RDB$) antes de agir.
+  Compatibilidade: todo DDL e valido no Firebird 2.5 E 5.0 (decisao 10) -
+  sem IDENTITY, sem BOOLEAN, generator via GEN_ID.
+  --------------------------------------------------------------------- }
 
-    End;
+function TDM.TabelaExiste(const ANomeTabela: String): Boolean;
+begin
+  ExecConsulta(
+    'SELECT COUNT(*) AS QTDE FROM RDB$RELATIONS ' +
+    'WHERE UPPER(RDB$RELATION_NAME) = ''' + UpperCase(ANomeTabela) + ''' ' +
+    'AND RDB$SYSTEM_FLAG = 0'
+  );
+  Result := Qr_Crud.FieldByName('QTDE').AsInteger > 0;
+end;
+
+function TDM.TabelaVazia(const ANomeTabela: String): Boolean;
+begin
+  ExecConsulta('SELECT COUNT(*) AS QTDE FROM ' + ANomeTabela);
+  Result := Qr_Crud.FieldByName('QTDE').AsInteger = 0;
+end;
+
+function TDM.CampoExiste(const ANomeTabela, ANomeCampo: String): Boolean;
+begin
+  ExecConsulta(
+    'SELECT COUNT(*) AS QTDE FROM RDB$RELATION_FIELDS ' +
+    'WHERE UPPER(TRIM(RDB$RELATION_NAME)) = ''' + UpperCase(ANomeTabela) + ''' ' +
+    'AND UPPER(TRIM(RDB$FIELD_NAME)) = ''' + UpperCase(ANomeCampo) + ''''
+  );
+  Result := Qr_Crud.FieldByName('QTDE').AsInteger > 0;
+end;
+
+function TDM.GeneratorExiste(const ANomeGenerator: String): Boolean;
+begin
+  ExecConsulta(
+    'SELECT COUNT(*) AS QTDE FROM RDB$GENERATORS ' +
+    'WHERE UPPER(TRIM(RDB$GENERATOR_NAME)) = ''' + UpperCase(ANomeGenerator) + ''''
+  );
+  Result := Qr_Crud.FieldByName('QTDE').AsInteger > 0;
+end;
+
+{ Passo 1 - TB_SINCRONIA + GN_SINCRONIA + TG_SINCRONIA (decisao 2 - DDL
+  autoritativa fornecida pelo Valdo). }
+procedure TDM.EnsureSincroniaTable;
+begin
+  if not GeneratorExiste('GN_SINCRONIA') then
+    ExecComando('CREATE GENERATOR GN_SINCRONIA');
+
+  if not TabelaExiste('TB_SINCRONIA') then
+    ExecComando(
+      'CREATE TABLE TB_SINCRONIA (' +
+      'SRC_CODIGO    INTEGER NOT NULL, ' +
+      'SRC_TABELA    VARCHAR(30), ' +
+      'SRC_CHAVE     VARCHAR(30), ' +
+      'SRC_OPER      CHAR(1), ' +
+      'SRC_TIME      TIMESTAMP, ' +
+      'SRC_REGISTRO  INTEGER, ' +
+      'SRC_LOG       VARCHAR(255), ' +
+      'CONSTRAINT PK_TB_SINCRONIA PRIMARY KEY (SRC_CODIGO))'
+    );
+
+  // CREATE OR ALTER = idempotente nas duas versoes
+  ExecComando(
+    'CREATE OR ALTER TRIGGER TG_SINCRONIA FOR TB_SINCRONIA ' +
+    'ACTIVE BEFORE INSERT POSITION 0 ' +
+    'AS BEGIN NEW.SRC_CODIGO = GEN_ID(GN_SINCRONIA, 1); END'
+  );
+end;
+
+{ Passo 2 - TB_SYNC_TABLE removida por completo (decisao 1): o checkpoint
+  migrou para TB_LISTA_SINCRONIA.LAST_UPDATE. }
+procedure TDM.DropSyncTable;
+begin
+  if TabelaExiste('TB_SYNC_TABLE') then
+    ExecComando('DROP TABLE TB_SYNC_TABLE');
+end;
+
+procedure TDM.EnsureListaSincroniaTable;
+begin
+  if not TabelaExiste('TB_LISTA_SINCRONIA') then
+  Begin
+    try
+      ExecComando(
+        'CREATE TABLE TB_LISTA_SINCRONIA (' +
+        'WAY VARCHAR(1) NOT NULL, ' +
+        'DESC_TABELA VARCHAR(60) NOT NULL, ' +
+        'KIND VARCHAR(20) NOT NULL, ' +
+        'DESC_PROCESS VARCHAR(100), ' +
+        'SEQ INTEGER, ' +
+        'DESC_FIELD VARCHAR(60), ' +
+        'DESC_TRIGGER VARCHAR(60), ' +
+        'NOTE VARCHAR(255), ' +
+        'SET_ON VARCHAR(1), ' +
+        'CLASS_NAME VARCHAR(100), ' +
+        'END_POINT VARCHAR(200), ' +
+        'LAST_UPDATE TIMESTAMP, ' +
+        'CONSTRAINT PK_LISTA_SINCRONIA PRIMARY KEY (WAY, DESC_TABELA, KIND))'
+      );
+    except
+      on E: Exception do
+        // corrida entre instancias/terminais iniciando ao mesmo tempo: se
+        // outro processo ja criou a tabela, ignora; qualquer outro erro sobe
+        if Pos('already exist', LowerCase(E.Message)) = 0 then raise;
+    end;
+  End;
+  // Bancos criados antes da decisao 3 ganham a coluna de checkpoint
+  if not CampoExiste('TB_LISTA_SINCRONIA','LAST_UPDATE') then
+    ExecComando('ALTER TABLE TB_LISTA_SINCRONIA ADD LAST_UPDATE TIMESTAMP');
+end;
+
+procedure TDM.SeedListaSincroniaIfEmpty;
+Var
+  I   : Integer;
+  Row : TSincroniaSeedRow;
+begin
+  if not TabelaVazia('TB_LISTA_SINCRONIA') then Exit;
+
+  with Qr_Acao do
+  Begin
+    Database    := IBD_Gestao;
+    Transaction := IBD_Gestao.DefaultTransaction;
+    if not Transaction.InTransaction then Transaction.StartTransaction;
+    try
+      SQL.Text :=
+        'INSERT INTO TB_LISTA_SINCRONIA ' +
+        '(WAY, DESC_TABELA, KIND, DESC_PROCESS, SEQ, DESC_FIELD, DESC_TRIGGER, NOTE, SET_ON, CLASS_NAME, END_POINT) ' +
+        'VALUES (:WAY, :DESC_TABELA, :KIND, :DESC_PROCESS, :SEQ, :DESC_FIELD, :DESC_TRIGGER, :NOTE, :SET_ON, :CLASS_NAME, :END_POINT)';
+      Prepare;
+      for I := Low(SINCRONIA_SEED) to High(SINCRONIA_SEED) do
+      Begin
+        Row := SINCRONIA_SEED[I];
+        ParamByName('WAY').AsString          := Row.Way;
+        ParamByName('DESC_TABELA').AsString  := Row.DescTabela;
+        ParamByName('KIND').AsString         := Row.Kind;
+        ParamByName('DESC_PROCESS').AsString := Row.DescProcess;
+        ParamByName('SEQ').AsInteger         := Row.Seq;
+        if Row.DescField <> '' then
+          ParamByName('DESC_FIELD').AsString := Row.DescField
+        else
+          ParamByName('DESC_FIELD').Clear;
+        // Nenhum nome real de trigger confirmado no codigo - ver MAPA_INDEXACAO.md
+        ParamByName('DESC_TRIGGER').Clear;
+        ParamByName('NOTE').AsString       := Row.Note;
+        ParamByName('SET_ON').AsString     := Row.SetOn;
+        ParamByName('CLASS_NAME').AsString := Row.ClassName;
+        if Row.EndPoint <> '' then
+          ParamByName('END_POINT').AsString := Row.EndPoint
+        else
+          ParamByName('END_POINT').Clear;
+        ExecSQL;
+      End;
+      Transaction.Commit;
+    except
+      on E: Exception do
+      Begin
+        if Transaction.InTransaction then Transaction.Rollback;
+        raise;
+      End;
+    end;
   End;
 end;
 
-function TDM.ListTrigger: TListaTrigger;
+{ Passo 5 - soft delete universal (decisao 8): DELETED CHAR(1) DEFAULT 'N'
+  em TODAS as tabelas de usuario, exceto as 2 de controle. O backfill e
+  necessario porque na 2.5 o DEFAULT nao retroage aos registros existentes. }
+procedure TDM.EnsureDeletedColumns;
 Var
-  LcTrigger : TTrigger;
+  LcTabelas : TStringList;
+  I         : Integer;
 begin
-  Result := TListaTrigger.create;
-  Result.Clear;
-  //Lista Tabelas e Campos
-  LcTrigger.Tabela := 'TB_USUARIO';
-  LcTrigger.Campo := 'USU_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'CARGO';
-  LcTrigger.Campo := 'CRG_CARGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_COLABORADOR';
-  LcTrigger.Campo := 'CLB_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_EMPRESA';
-  LcTrigger.Campo := 'EMP_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_ENDERECO';
-  LcTrigger.Campo := 'END_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_FORMAPAGTO';
-  LcTrigger.Campo := 'FPT_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_GRUPOS';
-  LcTrigger.Campo := 'GRP_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_SUBGRUPOS';
-  LcTrigger.Campo := 'SBG_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_MARCA_PRODUTO';
-  LcTrigger.Campo := 'MRC_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_MEDIDA';
-  LcTrigger.Campo := 'MED_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_EMBALAGEM';
-  LcTrigger.Campo := 'EMB_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_PRODUTO';
-  LcTrigger.Campo := 'PRO_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_ESTOQUES';
-  LcTrigger.Campo := 'ETS_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_ESTOQUE';
-  LcTrigger.Campo := 'EST_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_TABELA_PRECO';
-  LcTrigger.Campo := 'TPR_CODIGO';
-  Result.Add(LcTrigger);
-  LcTrigger.Tabela := 'TB_PRECO';
-  LcTrigger.Campo := 'PRC_CODIGO';
-  Result.Add(LcTrigger);
+  LcTabelas := TStringList.Create;
+  try
+    ExecConsulta(
+      'SELECT TRIM(RDB$RELATION_NAME) AS NOME FROM RDB$RELATIONS ' +
+      'WHERE COALESCE(RDB$SYSTEM_FLAG,0) = 0 AND RDB$VIEW_BLR IS NULL ' +
+      'AND UPPER(TRIM(RDB$RELATION_NAME)) NOT IN (''TB_SINCRONIA'',''TB_LISTA_SINCRONIA'')'
+    );
+    while not Qr_Crud.Eof do
+    Begin
+      LcTabelas.Add(Trim(Qr_Crud.FieldByName('NOME').AsString));
+      Qr_Crud.Next;
+    End;
+    for I := 0 to LcTabelas.Count - 1 do
+    Begin
+      if not CampoExiste(LcTabelas[I],'DELETED') then
+      Begin
+        ExecComando('ALTER TABLE ' + LcTabelas[I] + ' ADD DELETED CHAR(1) DEFAULT ''N''');
+        ExecComando('UPDATE ' + LcTabelas[I] + ' SET DELETED = ''N'' WHERE DELETED IS NULL');
+      End;
+    End;
+  finally
+    LcTabelas.DisposeOf;
+  end;
+end;
+
+{ EXTERNALCODE em TB_EMPRESA (D4/D14 da revisao do sincronizador - UUID
+  devolvido pela setes-sync p/ registros sem CPF/CNPJ). Incorporado ao
+  bootstrap pela decisao 8 (supera o patch manual 01_firebird_ddl.sql). }
+procedure TDM.EnsureExternalCode;
+begin
+  if not CampoExiste('TB_EMPRESA','EXTERNALCODE') then
+  Begin
+    ExecComando('ALTER TABLE TB_EMPRESA ADD EXTERNALCODE VARCHAR(36)');
+    ExecComando('CREATE INDEX IDX_EMPRESA_EXTERNALCODE ON TB_EMPRESA (EXTERNALCODE)');
+  End;
+end;
+
+{ Passo 6 - triggers de captura TG_SRC_* (decisoes 5, 6 e 7): UMA trigger
+  multi-evento por tabela (AFTER INSERT OR UPDATE, sem DELETE - exclusao
+  fisica nao existe mais), gerada a partir de TB_LISTA_SINCRONIA
+  (DESC_TABELA + DESC_FIELD, WAY='E', SET_ON='S'). O nome criado e gravado
+  de volta em DESC_TRIGGER. }
+procedure TDM.EnsureTriggers;
+Var
+  LcTabela  : String;
+  LcCampo   : String;
+  LcTrigger : String;
+  LcNomeBase: String;
+  LcLista   : TStringList;
+  I         : Integer;
+begin
+  // Materializa a lista antes de executar DDL (Qr_Crud e reutilizado)
+  LcLista := TStringList.Create;
+  try
+    ExecConsulta(
+      'SELECT DISTINCT DESC_TABELA, DESC_FIELD FROM TB_LISTA_SINCRONIA ' +
+      'WHERE WAY = ''E'' AND SET_ON = ''S'' ' +
+      'AND DESC_FIELD IS NOT NULL AND DESC_FIELD <> '''''
+    );
+    while not Qr_Crud.Eof do
+    Begin
+      LcLista.Add(
+        Trim(Qr_Crud.FieldByName('DESC_TABELA').AsString) + '=' +
+        Trim(Qr_Crud.FieldByName('DESC_FIELD').AsString));
+      Qr_Crud.Next;
+    End;
+
+    for I := 0 to LcLista.Count - 1 do
+    Begin
+      LcTabela := LcLista.Names[I];
+      LcCampo  := LcLista.ValueFromIndex[I];
+      if not TabelaExiste(LcTabela) then Continue; // tabela ainda nao existe neste banco
+
+      // TG_SRC_EMPRESA para TB_EMPRESA; identificadores Firebird <= 31 chars
+      LcNomeBase := LcTabela;
+      if Pos('TB_', LcNomeBase) = 1 then Delete(LcNomeBase, 1, 3);
+      LcTrigger := Copy('TG_SRC_' + LcNomeBase, 1, 31);
+
+      // Corpo conforme decisao 7: INSERT grava NEW.<chave> com 'I',
+      // UPDATE grava OLD.<chave> com 'U'; SRC_CODIGO=0 (TG_SINCRONIA gera).
+      ExecComando(
+        'CREATE OR ALTER TRIGGER ' + LcTrigger + ' FOR ' + LcTabela + ' ' +
+        'ACTIVE AFTER INSERT OR UPDATE POSITION 0 ' +
+        'AS BEGIN ' +
+        'IF (INSERTING) THEN ' +
+        'INSERT INTO TB_SINCRONIA (SRC_CODIGO, SRC_TABELA, SRC_CHAVE, SRC_OPER, SRC_REGISTRO, SRC_TIME) ' +
+        'VALUES (0, ''' + LcTabela + ''', ''' + LcCampo + ''', ''I'', NEW.' + LcCampo + ', CURRENT_TIMESTAMP); ' +
+        'ELSE ' +
+        'INSERT INTO TB_SINCRONIA (SRC_CODIGO, SRC_TABELA, SRC_CHAVE, SRC_OPER, SRC_REGISTRO, SRC_TIME) ' +
+        'VALUES (0, ''' + LcTabela + ''', ''' + LcCampo + ''', ''U'', OLD.' + LcCampo + ', CURRENT_TIMESTAMP); ' +
+        'END'
+      );
+
+      ExecComando(
+        'UPDATE TB_LISTA_SINCRONIA SET DESC_TRIGGER = ''' + LcTrigger + ''' ' +
+        'WHERE WAY = ''E'' AND DESC_TABELA = ''' + LcTabela + ''''
+      );
+    End;
+  finally
+    LcLista.DisposeOf;
+  end;
+end;
+
+procedure TDM.EnsureSincronia;
+begin
+  BootstrapOk := False;
+  EnsureSincroniaTable;        // passo 1 - fila + generator + trigger da PK
+  DropSyncTable;               // passo 2 - decisao 1
+  EnsureListaSincroniaTable;   // passo 3 - catalogo + LAST_UPDATE
+  SeedListaSincroniaIfEmpty;
+  EnsureDeletedColumns;        // passo 5 - decisao 8
+  EnsureExternalCode;
+  EnsureTriggers;              // passo 6 - decisoes 5/6/7
+  BootstrapOk := True;
+end;
+
+function TDM.GetDeletedFlag(const pTabela, pCampoChave: String; pCodigo: Integer): String;
+begin
+  Result := 'N';
+  if pCodigo <= 0 then Exit;
+  try
+    ExecConsulta(
+      'SELECT DELETED FROM ' + pTabela +
+      ' WHERE ' + pCampoChave + ' = ' + IntToStr(pCodigo)
+    );
+    if (not Qr_Crud.Eof) and (Trim(Qr_Crud.FieldByName('DELETED').AsString) = 'S') then
+      Result := 'S';
+  except
+    // coluna/tabela ausente (banco ainda nao preparado): trata como ativo
+    Result := 'N';
+  end;
+end;
+
+function TDM.GetDocumentByEmpCodigo(pCodigoEmpresa: Integer): String;
+begin
+  Result := '';
+  if pCodigoEmpresa <= 0 then Exit;
+  ExecConsulta(
+    'SELECT EMP_CNPJ FROM TB_EMPRESA WHERE EMP_CODIGO = ' + IntToStr(pCodigoEmpresa)
+  );
+  if not Qr_Crud.Eof then
+    Result := Trim(Qr_Crud.FieldByName('EMP_CNPJ').AsString);
 end;
 
 procedure TDM.setBDCrud(BD: TIBDatabase);

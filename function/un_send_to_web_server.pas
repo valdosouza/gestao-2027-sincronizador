@@ -5,7 +5,7 @@ interface
 uses
 
   Classes,System.SysUtils,System.StrUtils,Vcl.Forms,Vcl.CheckLst,
-  IdHTTP,un_base_setes, general_web;
+  IdHTTP,un_base_setes, general_web, un_dm;
 
 type
     TSendToWebServer = Class(TBaseSetes)
@@ -13,6 +13,11 @@ type
     procedure PreparaListBox;
     procedure SyncTable(indice: Integer);
     procedure send;
+    // D4/D14: registro sem CPF/CNPJ (personType 'N') — a setes-sync devolve
+    // o UUID gerado na 1ª sincronização; gravamos em TB_EMPRESA.EXTERNALCODE
+    // (patch 01_firebird_ddl.sql) para os próximos ciclos reindexarem por
+    // UUID em vez de correr o risco de duplicar o cliente/fornecedor/vendedor.
+    procedure SaveExternalCode(pCodigoEmpresa: Integer; pExternalCode: String);
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
@@ -52,15 +57,21 @@ begin
       LcSendWeb := TGeneralSendFactory.Instanciar(FListaSincronia.registro.NomeClasse);
       LcSendWeb.InstitutionDestino := FInstitutionDestino;
       LcSendWeb.URL := FURL;
+      LcSendWeb.ApiKey := FApiKey;
       LcSendWeb.Metodo := 'Post';
       LcSendWeb.EndPoint := FListaSincronia.registro.endPoint;
       LcSendWeb.Inicializa;
       for I := 0 to FSincronia.Lista.count - 1 do
       Begin
+        // Parada graciosa: usuario pediu para fechar - para ANTES do
+        // proximo registro (o atual ja gravou checkpoint/SRC_LOG).
+        if PararSolicitado then Break;
         TRy
           Try
             LcSendWeb.Codigo := FSincronia.Lista[I].Registro;
             LcSendWeb.send;
+            if LcSendWeb.ExternalCode <> '' then
+              SaveExternalCode(LcSendWeb.Codigo, LcSendWeb.ExternalCode);
           Finally
             FSincronia.Clear;
             FSincronia.Registro.Tabela    := FListaSincronia.Registro.Tabela;
@@ -95,12 +106,21 @@ begin
 
 end;
 
+procedure TSendToWebServer.SaveExternalCode(pCodigoEmpresa: Integer; pExternalCode: String);
+begin
+  DM.ExecComando(
+    'UPDATE TB_EMPRESA SET EXTERNALCODE = ''' + pExternalCode + ''' ' +
+    'WHERE EMP_CODIGO = ' + IntToStr(pCodigoEmpresa)
+  );
+end;
+
 procedure TSendToWebServer.send;
 Var
   I: Integer;
 begin
   for I := 0 to FListaSincronia.ListaEnviar.count - 1 do
   Begin
+    if PararSolicitado then Break; // parada graciosa entre tabelas
     FListaSincronia.ClonarObj(FListaSincronia.ListaEnviar[I],FListaSincronia.registro);
     if FListaSincronia.registro.ativo = 'S' then
     Begin

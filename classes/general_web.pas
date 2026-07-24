@@ -1,10 +1,11 @@
-unit general_web;
+﻿unit general_web;
 
 interface
 
 uses System.Classes,System.TypInfo, prm_retorno, System.SysUtils, REST.Client,
      REST.Types, REST.Json,System.StrUtils,System.Rtti,IPPeerAPI,IdHTTP,
-     IpPeerClient,IdComponent,TblSyncTable,ControllerSincronia, Vcl.StdCtrls ;
+     IpPeerClient,IdComponent,ControllerSincronia, Vcl.StdCtrls,
+     System.JSON ;
 
 Type
   TGeneralWeb = class(TPersistent)
@@ -16,6 +17,8 @@ Type
     FURL:       String;
     FMetodo:    String;
     FEndPoint:  String;
+    FApiKey:    String;
+    FExternalCode: String;
     FSincronia   : TControllerSincronia;
 
     //RESTResponseDSA: TRESTResponseDataSetAdapter;
@@ -24,6 +27,7 @@ Type
     procedure setFURL                (const Value: String);
     procedure setFMetodo             (const Value: String);
     procedure setFEndPoint           (const Value: String);
+    procedure setFApiKey             (const Value: String);
     procedure setFInstitutionDestino (const Value: Integer);
     procedure setFInstitutionOrigem  (const Value: Integer);
     procedure configComponents;
@@ -37,22 +41,31 @@ Type
     FTerminal            : Integer;
 
     procedure createComponents;Virtual;
-    function getLasUpdate:TSyncTable;
     procedure GenerateJson;Virtual;
     procedure GetSincronize;
+    // Onda 1 da revisão do sincronizador (Delphi) — interpreta o envelope
+    // novo {ok,id,externalCode}/{ok:false,error,fields,code} e traduz para
+    // o TPrmRetorno já consumido por un_send_to_web_server/un_receive_from_
+    // web_server (ID = status HTTP, Code = id do registro devolvido,
+    // Mensagem = mensagem/erro) — não quebra os chamadores existentes.
+    procedure ParseRetornoEnvelope;
   public
     constructor Create;Virtual;
     destructor  Destroy;override;
     procedure   Inicializa;Virtual;
     procedure send;
     procedure receive;Virtual;
-    procedure PreparaListBox(Tipo:String);
     property Codigo      : Integer     read FCodigo   write setFCodigo;
     property Retorno     : TPrmRetorno read FRetorno  write setFRetorno;
     property URL         : String      read FURL      write setFURL;
     property Metodo      : String      read FMetodo   write setFMetodo;
     property EndPoint    : String      read FEndPoint write setFEndPoint;
+    property ApiKey      : String      read FApiKey   write setFApiKey;
     property Terminal    : Integer     read FTerminal write setFTerminal;
+    // D4/D14: UUID devolvido pela setes-sync quando o registro não tem
+    // CPF/CNPJ (personType 'N') — quem chama send() lê esta propriedade
+    // depois e grava em TB_EMPRESA.EXTERNALCODE (ver un_send_to_web_server).
+    property ExternalCode: String      read FExternalCode;
     property InstitutionOrigem:Integer  Read FInstitutionOrigem  write setFInstitutionOrigem;
     property InstitutionDestino:Integer Read FInstitutionDestino write setFInstitutionDestino;
 
@@ -73,8 +86,6 @@ procedure TGeneralWeb.configComponents;
 Var
   LcContentType  : TRESTContentType;
   LcUrl          : String;
-  LcAccessToKen  : String;
-  Lc_Institution : String;
 
 begin
   RESTClient.ResetToDefaults;
@@ -83,23 +94,27 @@ begin
 
   LcUrl := concat( FUrl,FEndPoint);
   RESTClient.ContentType := 'application/json';
-
   RESTClient.BaseURL := LcUrl;
+
+  // D12 (revisão do sincronizador): NÃO existe mais chave global concatenada
+  // na URL — cada instalação tem a própria chave (registro do Windows,
+  // SISWEB\FApiKey), enviada como header X-Api-Key. O servidor resolve
+  // institution/schema pela chave; o payload NÃO manda mais tb_institution_id.
+  RESTRequest.Params.AddItem('X-Api-Key', FApiKey,
+    TRESTRequestParameterKind.pkHTTPHEADER,
+    [TRESTRequestParameterOption.poDoNotEncode]);
+
   case AnsiIndexStr(UpperCase(FMetodo), ['POST', 'PUT','DELETE','GET']) of
     0:Begin
-        RESTClient.BaseURL := concat(LcUrl,LcAccessToKen);
         RESTRequest.Method := rmPOST;
       End;
     1:Begin
-        RESTClient.BaseURL := LcUrl;
         RESTRequest.Method := rmPUT;
       End;
     2:Begin
-        RESTClient.BaseURL := LcUrl;
         RESTRequest.Method := rmDELETE;
       End;
     3:Begin
-        RESTClient.BaseURL := LcUrl;
         RESTRequest.Method := rmGET;
       End;
   end;
@@ -108,7 +123,8 @@ end;
 constructor TGeneralWeb.Create;
 begin
   inherited;
-  //FRetorno := TPrmRetorno.Create;
+  FRetorno := TPrmRetorno.Create;
+  FExternalCode := '';
 end;
 
 procedure TGeneralWeb.createComponents;
@@ -134,12 +150,64 @@ begin
   inherited;
 end;
 
-procedure TGeneralWeb.send;
+procedure TGeneralWeb.ParseRetornoEnvelope;
 Var
-  LcStrJSon: String;
+  LcJson    : TJSONObject;
+  LcOk      : Boolean;
+  LcError   : String;
+  LcId      : Integer;
+  LcExtCode : String;
+begin
+  FExternalCode := '';
+  FRetorno.Clear;
+
+  // D14: sucesso/erro é decidido pelo STATUS HTTP (200 = ok), não só pelo
+  // corpo — mantém o `case Retorno.ID of 200:` já usado pelos chamadores.
+  FRetorno.ID := RESTResponse.StatusCode;
+
+  LcJson := nil;
+  try
+    if RESTResponse.Content <> '' then
+      LcJson := TJSONObject.ParseJSONValue(RESTResponse.Content) as TJSONObject;
+
+    if Assigned(LcJson) then
+    Begin
+      LcOk := False;
+      if Assigned(LcJson.GetValue('ok')) then
+        LcOk := LcJson.GetValue('ok').Value = 'true';
+
+      if LcOk then
+      Begin
+        LcId := 0;
+        if Assigned(LcJson.GetValue('id')) then
+          LcId := StrToIntDef(LcJson.GetValue('id').Value, 0);
+        FRetorno.Code     := LcId;
+        FRetorno.Mensagem := 'OK';
+
+        if Assigned(LcJson.GetValue('externalCode')) then
+          FExternalCode := LcJson.GetValue('externalCode').Value;
+      End
+      else
+      Begin
+        LcError := 'Erro desconhecido';
+        if Assigned(LcJson.GetValue('error')) then
+          LcError := LcJson.GetValue('error').Value;
+        FRetorno.Mensagem := LcError;
+      End;
+    End
+    else
+      // corpo vazio ou não-JSON (ex.: erro de rede/timeout antes do servidor
+      // responder) — mensagem genérica, ID já reflete o status HTTP real
+      FRetorno.Mensagem := RESTResponse.Content;
+  finally
+    if Assigned(LcJson) then LcJson.Free;
+  end;
+end;
+
+procedure TGeneralWeb.send;
 begin
   try
-    //FRetorno.clear;
+    FRetorno.Clear;
     GenerateJson;
     if FStrJson <> '' then
     Begin
@@ -147,10 +215,10 @@ begin
       RESTRequest.ClearBody;
       RESTRequest.Body.Add(FStrJson, TRESTContentType.ctAPPLICATION_JSON);
       RESTRequest.Execute;
-      FRetorno := TJson.JsonToObject<TPrmRetorno>(RESTResponse.Content);
+      ParseRetornoEnvelope;
     End
     else
-      raise Exception.Create('N�o foi possivel gerar json');
+      raise Exception.Create('N�o foi possivel gerar json');
   Except
     on e: Exception do
       FRetorno.Mensagem := e.Message;
@@ -165,6 +233,11 @@ end;
 procedure TGeneralWeb.setFEndPoint(const Value: String);
 begin
   FEndPoint := Value;
+end;
+
+procedure TGeneralWeb.setFApiKey(const Value: String);
+begin
+  FApiKey := Value;
 end;
 
 procedure TGeneralWeb.setFInstitutionDestino(const Value: Integer);
@@ -203,19 +276,6 @@ begin
 
 end;
 
-function TGeneralWeb.getLasUpdate: TSyncTable;
-begin
-  Result := TSyncTable.Create;
-  with FSincronia.SyncClient.Registro do
-  Begin
-    Codigo := FSincronia.Registro.Tabela;
-    //R - Receber / E - Enviar
-    Sentido := FSincronia.Registro.sentido;
-    Tipo := FSincronia.Registro.Tipo;
-  End;
-  Result := FSincronia.SyncClient.getTime;
-end;
-
 procedure TGeneralWeb.GetSincronize;
 begin
   try
@@ -223,7 +283,7 @@ begin
     RESTRequest.ClearBody;
     RESTRequest.Body.Add(FStrJson, TRESTContentType.ctAPPLICATION_JSON);
     RESTRequest.Execute;
-    FRetorno := TJson.JsonToObject<TPrmRetorno>(RESTResponse.Content);
+    ParseRetornoEnvelope;
   Except
     on e: Exception do
       FRetorno.Mensagem := e.Message;

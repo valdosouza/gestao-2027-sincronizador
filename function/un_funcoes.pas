@@ -3,7 +3,7 @@
 interface
 
 USES System.SysUtils,IniFiles, System.Classes,REST.Json,System.Json,
-  Data.DB, IBX.IBCustomDataSet,IBX.IBQuery, ControllerSyncTable,Tlhelp32,
+  Data.DB, IBX.IBCustomDataSet,IBX.IBQuery,Tlhelp32,
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, Vcl.Forms,
   Winapi.Windows;
 

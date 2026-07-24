@@ -6,23 +6,22 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Vcl.ImgList, Vcl.Menus, Vcl.Buttons, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls,
   StrUtils, Gauges, System.ImageList, Rtti,
-  un_dm, tas_config, un_sistema,listatrigger,
+  un_dm, tas_config, un_sistema,
   ControllerBase, ControllerEmpresa, ControllerEndereco,ControllerColaborador,
   ControllerProduto, ControllerCliente, ControllerContaBancaria,
-  ControllerPlanoContas,ControllerSyncTable,
+  ControllerPlanoContas,ControllerSincronia,ControllerListaSincronia,
   ObjMerchandise,objSalesMan,  objCustomer,ObjBrand,
   objBankAccount, objFinancialPlans,
   objFinancialStatement, Vcl.AppEvnts,
   customer_send_web,
-  un_sincroniza, UnFunctions, Winapi.ShellAPI, IBX.IBQuery, Vcl.Dialogs,
+  un_sincroniza, un_base_setes, UnFunctions, Winapi.ShellAPI, IBX.IBQuery, Vcl.Dialogs,
   payment_type_send_web,bank_account_send_web, cashier_send_web,
   category_send_web,file_send_web,financial_plans_send_web,financial_statement_send_web,
   financial_send_web,invoice_send_web,invoice_merchandise_send_web,
   invoice_rectification_send_web,invoice_return_55_send_web,invoice_return_65_send_web,
   order_purchase_send_web,order_sale_send_web,order_stock_adjust_send_web,
-   promotion_send_web, rest_group_send_web,
-  rest_group_has_attribute_send_web,rest_group_has_measure_send_web,rest_group_has_optional_send_web,
-  rest_menu_send_web,rest_menu_has_ingrediente_send_web,rest_subgroup_send_web,salesman_send_web,
+   promotion_send_web,
+  salesman_send_web,
   stock_balance_send_web,stock_statement_send_web, brand_send_web,
   measure_send_web, merchandise_send_web, price_send_web,price_list_send_web,
   package_send_web,provider_send_web;
@@ -86,6 +85,13 @@ type
     Interval : Integer;
 
     FSincronia  : TSincroniza;
+    // Limpeza diaria da fila (decisao 9): data da ultima execucao nesta
+    // sessao - roda no primeiro ciclo de cada dia.
+    FUltimaLimpeza : TDate;
+    // Parada graciosa ao fechar: sincronia em andamento + fechamento adiado
+    // ate o registro atual concluir (ver FormCloseQuery/FinalizarSincronia).
+    FSincronizando   : Boolean;
+    FFecharAposSync  : Boolean;
 
 
     function  VerificarInternet:boolean;
@@ -106,9 +112,8 @@ type
     function existField(Tabela,campo : String):Boolean;
     function existGenerator(Gerador : String):Boolean;
 
-    procedure execTableSincronia;
-
-    procedure execTrigger;
+    procedure ExecutaLimpezaDiaria;
+    procedure FinalizarAplicacao;
     procedure execGenerator;
 
     procedure geraSequenciaTB_CRP_ITENS;
@@ -310,14 +315,14 @@ begin
     Tm_Sync_At_Minut.Enabled := False;
     Tm_Sync_Interval.Interval := (Interval * 1000);
     LcInterval := TimeToStr( ( Time + Interval ) );
-    Lb_Processamento.Caption :=  (Concat('Processo parado e a próxima sincronia será  às : ',LcInterval));
+    Lb_Processamento.Caption :=  (Concat('Processo parado e a prï¿½xima sincronia serï¿½  ï¿½s : ',LcInterval));
     Tm_Sync_Interval.Enabled := True;
   End
   else
   Begin
     Tm_Sync_Interval.Enabled := false;
     Tm_Sync_At_Minut.Enabled := True;
-    Lb_Processamento.Caption :=  (Concat('Processo parado e a próxima sincronia será no minuto : ',NoMinuto));
+    Lb_Processamento.Caption :=  (Concat('Processo parado e a prï¿½xima sincronia serï¿½ no minuto : ',NoMinuto));
   End;
 end;
 
@@ -437,109 +442,19 @@ begin
 
 end;
 
-procedure TPrincipal.execTableSincronia;
-begin
-  with DM.IBSQL do
-  Begin
-    if not existTabela('TB_SINCRONIA') then
-    Begin
-      sql.Clear;
-      sql.Add(concat(
-              'CREATE TABLE TB_SINCRONIA ( ',
-              '  SRC_CODIGO    INTEGER NOT NULL PRIMARY KEY , ',
-              '  SRC_TABELA    VARCHAR(30) CHARACTER SET WIN1252 COLLATE WIN_PTBR, ',
-              '  SRC_CHAVE     VARCHAR(30) CHARACTER SET WIN1252 COLLATE WIN_PTBR, ',
-              '  SRC_OPER      CHAR(1) CHARACTER SET WIN1252 COLLATE WIN_PTBR, ',
-              '  SRC_TIME      TIMESTAMP, ',
-              '  SRC_REGISTRO  INTEGER);'
-      ));
-      tryExecIBSQL;
-    End;
-    if not existTriguer('TG_SINCRONIA') then
-    Begin
-      sql.Clear;
-      sql.Add(concat(
-                'CREATE OR ALTER TRIGGER TG_SINCRONIA FOR TB_SINCRONIA ',
-                'ACTIVE BEFORE INSERT POSITION 0 ',
-                'AS BEGIN NEW.SRC_CODIGO = GEN_ID(GN_SINCRONIA, 1); END '
-      ));
-      tryExecIBSQL;
-    End;
-    if not existTabela('TB_SYNC_TABLE') then
-    Begin
-      sql.Clear;
-      sql.Add(concat(
-                'CREATE TABLE TB_SYNC_TABLE ( ',
-                '    ID         VARCHAR(100) CHARACTER SET WIN1252 NOT NULL COLLATE WIN_PTBR, ',
-                '    DT_UPDATE  DATE, ',
-                '    TM_UPDATE  TIME, ',
-                '    OPERATOR   INTEGER, ',
-                '   UPDATE_AT  TIMESTAMP, ',
-                '    WAY        CHAR(1) NOT NULL  );'
-      ));
-      tryExecIBSQL;
-      sql.Clear;
-      sql.Add(concat(
-                'ALTER TABLE TB_SYNC_TABLE ADD CONSTRAINT PK_TB_SYNC_TABLE PRIMARY KEY ( ID, WAY );'
-      ));
-      tryExecIBSQL;
-    End;
-    if not existField('TB_SYNC_TABLE','WAY') then
-    Begin
-      sql.Clear;
-      sql.Add(concat(
-                'ALTER TABLE TB_SYNC_TABLE ADD  WAY CHAR(1);'
-      ));
-      tryExecIBSQL;
-    End;
-  End;
-end;
-
-procedure TPrincipal.execTrigger;
+procedure TPrincipal.ExecutaLimpezaDiaria;
 Var
-  LcTrigger : TTrigger;
-  LcListaTrigger : TControllerTrigger;
-  I : Integer;
-  LcInsertSincronia : String;
+  LcSincronia : TControllerSincronia;
 begin
-  LcInsertSincronia := ' INSERT INTO TB_SINCRONIA(SRC_CODIGO, SRC_TABELA, SRC_CHAVE, SRC_OPER,SRC_REGISTRO, SRC_TIME) VALUES( ';
-  LcListaTrigger := TControllerTrigger.Create(nil);
-  LcListaTrigger.getlist;
-  Gg_Progresso.Progress := 0;
-  Gg_Progresso.MinValue := 0;
-  Gg_Progresso.MaxValue := LcListaTrigger.Lista.Count;
-  Gg_Progresso.Update;
-  for I := 0 to LcListaTrigger.Lista.Count - 1 do
-  Begin
-    LcTrigger := LcListaTrigger.Lista[I];
-    if Trim(LcTrigger.Tabela)<> '' then
-    Begin
-      DM.IBSQL.sql.Clear;
-      DM.IBSQL.sql.Add(concat(
-              'CREATE OR ALTER TRIGGER TG_SRC_DEL_',LcTrigger.Tabela, ' FOR TB_',LcTrigger.Tabela,
-              ' ACTIVE AFTER DELETE POSITION 0 ',
-              'AS begin ',LcInsertSincronia,'0,','''TB_',LcTrigger.Tabela,''',''',LcTrigger.Campo,''',''D'',OLD.',LcTrigger.Campo,',CURRENT_TIMESTAMP);end '
-      ));
-      tryExecIBSQL;
-      //UPDATE
-      DM.IBSQL.sql.Clear;
-      DM.IBSQL.sql.Add(concat(
-              'CREATE OR ALTER TRIGGER TG_SRC_EDI_',LcTrigger.Tabela, ' FOR TB_',LcTrigger.Tabela,
-              ' ACTIVE AFTER UPDATE POSITION 0 ',
-              'AS begin ',LcInsertSincronia,'0,','''TB_',LcTrigger.Tabela,''',''',LcTrigger.Campo,''',''U'',OLD.',LcTrigger.Campo,',CURRENT_TIMESTAMP);end '
-      ));
-      tryExecIBSQL;
-      //insert
-      DM.IBSQL.sql.Clear;
-      DM.IBSQL.sql.Add(concat(
-              'CREATE OR ALTER TRIGGER TG_SRC_INS_',LcTrigger.Tabela, ' FOR TB_',LcTrigger.Tabela,
-              ' ACTIVE AFTER INSERT POSITION 0 ',
-              'AS begin ',LcInsertSincronia,'0,','''TB_',LcTrigger.Tabela,''',''',LcTrigger.Campo,''',''I'',NEW.',LcTrigger.Campo,',CURRENT_TIMESTAMP);end '
-      ));
-      tryExecIBSQL;
-      Gg_Progresso.Progress := Gg_Progresso.Progress + 1;
-      Gg_Progresso.Update;
-    End;
+  // Decisao 9: 1x por dia remove da TB_SINCRONIA o que ja foi processado
+  // com sucesso (SRC_LOG='OK') ha mais de 48 horas.
+  if FUltimaLimpeza = Date then Exit;
+  Try
+    LcSincronia := TControllerSincronia.Create(nil);
+    LcSincronia.DeleteProcessadosAntigos;
+    FUltimaLimpeza := Date;
+  Finally
+    LcSincronia.DisposeOf;
   End;
 end;
 
@@ -809,18 +724,47 @@ begin
 end;
 
 
+procedure TPrincipal.FinalizarAplicacao;
+begin
+  GeralogFile('TPrincipal.FormClose','Roteador - Encerramento');
+  Shell_NotifyIcon(NIM_DELETE, @It_TrayIconData);
+
+  Application.OnMessage := nil;
+  Application.OnException := nil;
+  Application.Terminate;
+  //Halt;
+end;
+
 procedure TPrincipal.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  case Application.MessageBox('Finalizar o Sistema!', 'Atenção', MB_YESNO or MB_APPLMODAL or MB_ICONINFORMATION) of
+  // Fechamento ja autorizado e adiado pela parada graciosa: a sincronia
+  // terminou (FinalizarSincronia chamou Close) - finaliza sem perguntar.
+  if FFecharAposSync then
+  Begin
+    if FSincronizando then
+      CanClose := False   // ainda aguardando o registro atual - segura
+    else
+      FinalizarAplicacao;
+    Exit;
+  End;
+
+  case Application.MessageBox('Finalizar o Sistema!', 'Atenï¿½ï¿½o', MB_YESNO or MB_APPLMODAL or MB_ICONINFORMATION) of
     mrYes:
       begin
-        GeralogFile('TPrincipal.FormClose','Roteador - Encerramento');
-        Shell_NotifyIcon(NIM_DELETE, @It_TrayIconData);
-
-        Application.OnMessage := nil;
-        Application.OnException := nil;
-        Application.Terminate;
-        //Halt;
+        if FSincronizando then
+        Begin
+          // Parada graciosa: sinaliza os loops de envio/recebimento (checam
+          // entre registros), termina o registro atual com checkpoint e
+          // SRC_LOG gravados, e fecha sozinho em FinalizarSincronia.
+          TBaseSetes.PararSolicitado := True;
+          FFecharAposSync := True;
+          DesativaTimer;
+          Lb_Processamento.Caption := 'Finalizando - aguardando o registro atual concluir...';
+          Lb_Processamento.Update;
+          CanClose := False;
+        End
+        else
+          FinalizarAplicacao;
       end;
     mrNo: CanClose := False;
   end;
@@ -912,7 +856,9 @@ begin
                    PostMessage(Handle, WM_NULL, 0, 0);
                    end;
     WM_LBUTTONDBLCLK:begin
-                     MnuFechar.Click;
+                     // Duplo-clique no icone da bandeja RESTAURA a janela
+                     // (antes chamava MnuFechar e tentava ENCERRAR o app).
+                     MnuRestaurar.Click;
                     end;
     end;
   end;
@@ -950,8 +896,8 @@ begin
 end;
 
 {
- Terminal = 0 - É o servidor Web
- Terminal = 1 - É o servidor Local
+ Terminal = 0 - ï¿½ o servidor Web
+ Terminal = 1 - ï¿½ o servidor Local
  Terminal = x - PDVs e Disposivos moveis
 }
 
@@ -987,16 +933,13 @@ begin
         changeLocal;
         if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
 
-        if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
-        execTableSincronia;
-        if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
+        // Bootstrap completo (tabelas de controle, DELETED universal,
+        // EXTERNALCODE e triggers TG_SRC_*) - mesmo caminho do start
+        // automatico (decisoes 1-10 do prompt de construcao do banco).
+        DM.EnsureSincronia;
 
         if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
         AjustaGenerator;
-        if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
-
-        if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
-        execTrigger;
         if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
 
         if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
@@ -1048,7 +991,7 @@ begin
   Try
     AtivaInterface(True);
     chbx_setTimeTo.Checked := False;
-    Lb_Processamento.Caption := 'Processo de Envio - Aguarde parando a execução.....';
+    Lb_Processamento.Caption := 'Processo de Envio - Aguarde parando a execuï¿½ï¿½o.....';
     Lb_Processamento.Update;
   except
     on E: Exception do
@@ -1061,7 +1004,7 @@ begin
   Try
     AtivaInterface(True);
     chbx_setTimeTo.Checked := False;
-    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execução.....';
+    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execuï¿½ï¿½o.....';
     Lb_Processamento.Update;
   except
     on E: Exception do
@@ -1075,17 +1018,24 @@ begin
     AtivaInterface(True);
     FSincronia.DisposeOf;
     chbx_setTimeTo.Checked := False;
-    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execução.....';
+    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execuï¿½ï¿½o.....';
     Lb_Processamento.Update;
   except
     on E: Exception do
       GeralogCrashlytics('Roteador.FinalizarSincronia',E.Message);
   end;
+  FSincronizando := False;
+  // Parada graciosa concluida: o usuario pediu para fechar durante a
+  // sincronia - agora fecha de verdade (FormCloseQuery ve FFecharAposSync).
+  if FFecharAposSync then Close;
 end;
 
 
 procedure TPrincipal.TmHideTimer(Sender: TObject);
 begin
+  // Some tambem da barra de tarefas (a janela da Application e a dona do
+  // botao) - o app fica so no icone da bandeja; MnuRestaurar reverte.
+  ShowWindow(Application.Handle, SW_HIDE);
   principal.Hide;
   if TmHide.Enabled  then
   Begin
@@ -1109,7 +1059,7 @@ begin
     End
     else
     Begin
-      Lb_Processamento.Caption :=  (Concat('Processo parado e a próxima sincronia é no minuto : ',NoMinuto));
+      Lb_Processamento.Caption :=  (Concat('Processo parado e a prï¿½xima sincronia ï¿½ no minuto : ',NoMinuto));
       Lb_Processamento.Update;
     End;
   end;
@@ -1244,7 +1194,7 @@ begin
   REsult := True;
   {$IFNDEF DEBUG}
   REsult := False;
-  if (InputQuery('Autorização da Acesso ', 'Digite o Codigo de Acessso', LcCodigo)) then
+  if (InputQuery('Autorizaï¿½ï¿½o da Acesso ', 'Digite o Codigo de Acessso', LcCodigo)) then
   Begin
     if LcCodigo ='eqpm50m$' then
       Result := True
@@ -1259,22 +1209,27 @@ end;
 
 procedure TPrincipal.VerificaModoSincronia;
 Var
-  LcSync : TControllerSyncTable;
+  LcLista    : TControllerListaSincronia;
+  LcDateTime : TDateTime;
 begin
+  // Reposicionamento manual do checkpoint (agora em TB_LISTA_SINCRONIA.
+  // LAST_UPDATE - decisoes 1 e 3): forca a proxima sincronia a reprocessar
+  // a partir da data/hora escolhida na tela.
   if chbx_setTimeTo.Checked then
   Begin
     try
-      LcSync := TcontrollerSyncTable.Create(nil);
-      LcSync.Registro.Data := Dtp_Inicio.DateTime;
-      LcSync.Registro.Hora := Dtp_Hora.DateTime;
+      LcLista := TControllerListaSincronia.Create(nil);
+      LcDateTime := Trunc(Dtp_Inicio.DateTime) + Frac(Dtp_Hora.DateTime);
       case rdg_Top_Right.ItemIndex of
-        0:LcSync.Registro.Sentido := 'W';
-        1:LcSync.Registro.Sentido := 'D';
-        2:LcSync.Registro.Sentido := 'A';
+        0:LcLista.SetLastUpdateAll('E', LcDateTime);
+        1:LcLista.SetLastUpdateAll('R', LcDateTime);
+        2:Begin
+            LcLista.SetLastUpdateAll('E', LcDateTime);
+            LcLista.SetLastUpdateAll('R', LcDateTime);
+          End;
       end;
-      LcSync.setTimeToWEb;
     finally
-      LcSync.DisposeOf;
+      LcLista.DisposeOf;
     end;
   End;
 end;
@@ -1284,8 +1239,8 @@ begin
   Result := True;
   if Fc_PingConectadoSetes then
   Begin
-    Lst_Process_Send.Items.Add('Computador sem conexão com a Internet');
-    Lb_Processamento.Caption := 'Processo de Sincronia - Aguardando conexão com a Internet...';
+    Lst_Process_Send.Items.Add('Computador sem conexï¿½o com a Internet');
+    Lb_Processamento.Caption := 'Processo de Sincronia - Aguardando conexï¿½o com a Internet...';
     Application.ProcessMessages;
   end;
 
@@ -1312,6 +1267,19 @@ procedure TPrincipal.ExecutaSincronia;
 Var
   LcSinc : TThread;
 begin
+  // Gate (criterio de sucesso 2): sincronizacao bloqueada ate o bootstrap
+  // do banco completar sem erro (DM.EnsureSincronia no DataModuleCreate).
+  if (DM = nil) or (not DM.BootstrapOk) then
+  Begin
+    Lst_Process_Send.Items.Add('Banco de dados nao preparado - sincronizacao bloqueada.');
+    Lst_Process_Send.Items.Add('Verifique a conexao local e reinicie o Sincronizador.');
+    Lb_Processamento.Caption := 'Processo de Sincronia - BLOQUEADO (banco nao preparado)';
+    AtivaInterface(True);
+    Exit;
+  End;
+  ExecutaLimpezaDiaria;
+  TBaseSetes.PararSolicitado := False;
+  FSincronizando := True;
   LcSinc := TThread.CreateAnonymousThread(
   procedure
   begin
@@ -1338,8 +1306,9 @@ end;
 
 procedure TPrincipal.Sb_OcultarClick(Sender: TObject);
 begin
-  Principal.Show;
-  ShowWindow(Application.Handle, SW_NORMAL);
+  // Ocultar = so o icone da bandeja: esconde o form E o botao da barra de
+  // tarefas (antes fazia SW_NORMAL, deixando o botao visivel).
+  ShowWindow(Application.Handle, SW_HIDE);
   principal.Hide;
 end;
 
@@ -1376,14 +1345,11 @@ initialization
   RegisterClass(TStockBalanceSendWeb);
   RegisterClass(TStockListSendWeb);
   RegisterClass(TStockStatementSendWeb);
-  RegisterClass(TRestGroupSendWeb);
-  RegisterClass(TRestSubGroupSendWeb);
-  RegisterClass(TRestMenuSendWeb);
-  RegisterClass(TRestGroupHasAttributeSendWeb);
-  RegisterClass(TRestGroupHasMeasureSendWeb);
-  RegisterClass(TRestGroupHasOptionalSendWeb);
-  RegisterClass(TRestMenuHasIngredienteSendWeb);
-
+  // Modulo restaurante APOSENTADO (decisao D23 da revisao do sincronizador,
+  // Infra-IA/setes-sync/prompt_revisao_sincronizador_setes_sync.md) - os
+  // 7 arquivos rest_*_send_web.pas nao existem mais no projeto (nem a
+  // setes-sync tem os endpoints); RegisterClass/uses removidos para o
+  // projeto voltar a compilar.
 
 finalization
 
@@ -1413,13 +1379,6 @@ finalization
   UnRegisterClass(TPriceListSendWeb);
   UnRegisterClass(TPromotionSendWeb);
   UnRegisterClass(TProviderSendWeb);
-  UnRegisterClass(TRestGroupSendWeb);
-  UnRegisterClass(TRestGroupHasAttributeSendWeb);
-  UnRegisterClass(TRestGroupHasMeasureSendWeb);
-  UnRegisterClass(TRestGroupHasOptionalSendWeb);
-  UnRegisterClass(TRestMenuSendWeb);
-  UnRegisterClass(TRestMenuHasIngredienteSendWeb);
-  UnRegisterClass(TRestSubGroupSendWeb);
   UnRegisterClass(TSalesManSendWeb);
   UnRegisterClass(TStockBalanceSendWeb);
   UnRegisterClass(TStockListSendWeb);

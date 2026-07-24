@@ -1,8 +1,8 @@
-unit price_list_send_web;
+﻿unit price_list_send_web;
 
 interface
 
-uses System.SysUtils,general_web,REST.Json, ControllerTabelaPreco,json_price_list;
+uses System.SysUtils,general_web,REST.Json, ControllerTabelaPreco,  System.JSON;
 
 Type
   TPriceListSendWeb = class(TGeneralWeb)
@@ -16,6 +16,8 @@ Type
   end;
 
 implementation
+
+uses un_dm;
 
 { TGeneralWeb }
 
@@ -33,22 +35,29 @@ end;
 
 procedure TPriceListSendWeb.GenerateJson;
 Var
-  LcObj: TJsonPriceList;
+  LcJson: TJSONObject;
 begin
   inherited;
   FCtrl.Registro.Codigo := FCodigo;
   FCtrl.getbyid;
   if FCtrl.exist then
   Begin
-    LcObj := TJsonPriceList.Create;
-    LcObj.Codigo          := FCtrl.Registro.Codigo;
-    LcObj.Estabelecimento := FInstitutionDestino;
-    LcObj.Descricao       := FCtrl.Registro.Descricao;
-    LcObj.Validade        := FCtrl.Registro.Validade;
-    LcObj.Modalidade      := FCtrl.Registro.Modalidade;
-    LcObj.MargemLucro     := FCtrl.Registro.MargemLucro;
-    LcObj.Ativo           := FCtrl.Registro.Ativa;
-    FStrJson := TJson.ObjectToJsonString(LcObj);
+    // Contrato /price-list/sincronize: id = TPR_CODIGO local ✅; Estabelecimento
+    // NÃO viaja (D12).
+    LcJson := TJSONObject.Create;
+    try
+      LcJson.AddPair('id', TJSONNumber.Create(FCtrl.Registro.Codigo));
+      LcJson.AddPair('description', FCtrl.Registro.Descricao);
+      LcJson.AddPair('validity', FormatDateTime('yyyy-mm-dd', FCtrl.Registro.Validade));
+      LcJson.AddPair('modality', FCtrl.Registro.Modalidade);
+      LcJson.AddPair('aliqProfit', TJSONNumber.Create(FCtrl.Registro.MargemLucro));
+      LcJson.AddPair('published', FCtrl.Registro.Ativa);
+      // decisao 8: le o DELETED real da tabela
+      LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_TABELA_PRECO', 'TPR_CODIGO', FCodigo));
+      FStrJson := LcJson.ToJSON;
+    finally
+      LcJson.Free;
+    end;
   End;
 end;
 

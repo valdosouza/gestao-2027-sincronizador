@@ -12,7 +12,6 @@ uses
   un_dm in 'un_dm.pas' {DM: TDataModule},
   un_send_to_web_server in 'function\un_send_to_web_server.pas',
   base_form in 'repository\base_form.pas' {BaseForm},
-  json_category in '..\share\json_objects\json_category.pas',
   un_receive_from_web_server in 'function\un_receive_from_web_server.pas',
   order_sale_receive_web in 'classes\receive\order_sale_receive_web.pas';
 

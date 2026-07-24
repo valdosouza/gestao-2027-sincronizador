@@ -4,7 +4,7 @@ interface
 
 uses
   Classes,System.SysUtils,System.StrUtils,Vcl.Forms,Vcl.CheckLst,
-  IdHTTP,un_base_setes, general_web,tblSyncTable;
+  IdHTTP,un_base_setes, general_web;
 
 type
     TreceiveFromWebServer = Class(TBaseSetes)
@@ -55,6 +55,9 @@ begin
     LcReceiveWeb.Inicializa;
     for I := 0 to FSincronia.Lista.count - 1 do
     Begin
+      // Parada graciosa: usuario pediu para fechar - para ANTES do
+      // proximo registro (o atual ja gravou checkpoint/SRC_LOG).
+      if PararSolicitado then Break;
       TRy
         Try
           LcReceiveWeb.Codigo := FSincronia.Lista[I].Registro;
@@ -90,12 +93,15 @@ begin
   end;
 end;
 
-procedure TreceiveFromWebServer.Receive;
+// Nota: o corpo estava nomeado "Receive" sem declaracao correspondente na
+// classe (que declara "send") - corrigido para compilar.
+procedure TreceiveFromWebServer.send;
 Var
   I: Integer;
 begin
   for I := 0 to FListaSincronia.ListaReceber.count - 1 do
   Begin
+    if PararSolicitado then Break; // parada graciosa entre tabelas
     FListaSincronia.ClonarObj(FListaSincronia.ListaReceber[I],FListaSincronia.registro);
     if FListaSincronia.registro.ativo = 'S' then
     Begin
