@@ -64,8 +64,8 @@ Var
   Lc_Qry : TIBQuery;
 begin
   Result := '';
+  Lc_Qry := FCtrl.Empresa.GeraQuery;
   Try
-    Lc_Qry := FCtrl.Empresa.GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;

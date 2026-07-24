@@ -13,7 +13,6 @@ Type
     Lista: TListaItemICMS;
   private
 
-    function nextCodigo:Integer;
   public
     Registro : TItensIcms;
     constructor Create(AOwner: TComponent); override;
@@ -33,6 +32,7 @@ uses Un_Regra_Negocio;
 
 function TControllerItensICMS.atualiza: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -54,8 +54,8 @@ procedure TControllerItensICMS.getByItemNota;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -77,8 +77,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TItensICMS;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -111,41 +111,22 @@ begin
 end;
 
 
-function TControllerItensICMS.nextCodigo:Integer;
-var
-  Lc_Qry: TIBQuery;
-begin
-  Try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      SQL.Clear;
-      SQL.Add('SELECT MAX(ICM_CODIGO) FROM TB_ITENS_ICMS ' );
-      Active := True;
-      fetchall;
-      if recordcount > 0 then
-        Result := FieldByName('MAX').AsInteger + 1
-      else
-        Result := 1;
-    End;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-end;
-
 function TControllerItensICMS.insere: boolean;
 begin
-  Registro.Codigo := Generator('GN_ITENS_ICMS');// nextCodigo;
+  Result := True;
+  Registro.Codigo := Generator('GN_ITENS_ICMS');
   InsertObj(Registro);
 end;
 
 function TControllerItensICMS.migra: Boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 
 function TControllerItensICMS.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

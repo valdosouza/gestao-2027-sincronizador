@@ -95,6 +95,7 @@ end;
 
 function TControllerCrpItens.salva: boolean;
 begin
+  Result := True;
   if registro.Codigo = 0 then
     registro.Codigo := Generator('GN_CRP_ITENS');
   SaveObj(Registro);
@@ -114,10 +115,9 @@ end;
 procedure TControllerCrpItens.getById;
 Var
   Lc_Qry : TIBQuery;
-  LcItem : TCrpItens;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -143,8 +143,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TCrpItens;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

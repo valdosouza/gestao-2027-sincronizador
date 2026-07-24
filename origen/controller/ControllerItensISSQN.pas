@@ -13,7 +13,6 @@ Type
   TControllerItensISSQN = Class(TControllerBase)
 
   private
-    function nextCodigo:Integer;
   public
     Registro : TItensISSQN;
     Lista: TListaItemISSQN;
@@ -33,6 +32,7 @@ uses Un_Regra_Negocio;
 
 function TControllerItensISSQN.atualiza: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -55,8 +55,8 @@ procedure TControllerItensISSQN.getByItemNota;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -78,8 +78,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TItensISSQN;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -111,37 +111,16 @@ function TControllerItensISSQN.insere: boolean;
 begin
   try
     Result := TRue;
-    Registro.Codigo := Generator('GN_ITENS_ISSQN');//nextCodigo;
+    Registro.Codigo := Generator('GN_ITENS_ISSQN');
     InsertObj(Registro);
   Except
     Result := FAlse;
   end;
 end;
 
-function TControllerItensISSQN.nextCodigo: Integer;
-var
-  Lc_Qry: TIBQuery;
-begin
-  Try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      SQL.Clear;
-      SQL.Add('SELECT MAX(ISS_CODIGO) FROM TB_ITENS_ISSQN ' );
-      Active := True;
-      fetchall;
-      if recordcount > 0 then
-        Result := FieldByName('MAX').AsInteger + 1
-      else
-        Result := 1;
-    End;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-end;
-
 function TControllerItensISSQN.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

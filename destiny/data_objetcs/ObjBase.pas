@@ -24,7 +24,7 @@ Type
 
   public
     constructor Create;Virtual;
-    destructor Destroy;Virtual;
+    destructor Destroy;reintroduce;Virtual;
 
     property Pagina : Integer read Fpage write setFpage;
     property Estabelecimento : Integer Read Ftb_institution_id write setFtb_institution_id;

@@ -41,8 +41,8 @@ procedure TControllerGrupos.AtivarDesativarProdutos(grupoId: Integer;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -139,6 +139,7 @@ end;
 
 function TControllerGrupos.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -154,6 +155,7 @@ end;
 
 function TControllerGrupos.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_GRUPO');
   SaveObj(Registro);
@@ -173,10 +175,10 @@ end;
 function TControllerGrupos.getByDescricao(pGrupo:String): Boolean;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TGrupos;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -201,10 +203,9 @@ end;
 procedure TControllerGrupos.getById;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TGrupos;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -232,8 +233,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TGrupos;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

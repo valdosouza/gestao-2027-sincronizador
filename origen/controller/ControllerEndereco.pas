@@ -86,10 +86,10 @@ end;
 function TControllerEndereco.DeleteAllEmpresa: Boolean;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TEndereco;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -105,11 +105,12 @@ end;
 
 function TControllerEndereco.AutoEndereco: Boolean;
 begin
+  Result := True;
   with Registro  do
   Begin
     Codigo            := 0;
     Tipo              := 'PRINCIPAL';
-    Logradouro        := 'Não informado';
+    Logradouro        := 'Nï¿½o informado';
     Complemento       := '';
     Bairro            := 'Bairro';
     Cep               := '81000000';
@@ -126,6 +127,7 @@ end;
 
 function TControllerEndereco.salva: boolean;
 begin
+  Result := True;
   if existObj(Registro) then
   Begin
     UpdateObj(Registro);
@@ -160,9 +162,9 @@ var
   Lc_Qry : TIBQuery;
   Lc_aux:String;
 begin
+  Lc_Qry := GeraQuery;
   TRy
     Result:=true;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Sql.Clear;
@@ -183,8 +185,8 @@ procedure TControllerEndereco.getById;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add('SELECT e.* '+
@@ -212,9 +214,9 @@ Var
   lc_Aux : Integer;
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    //Guarda a informação da empresa caso o resultado seja zero
-    Lc_Qry := GeraQuery;
+    //Guarda a informaï¿½ï¿½o da empresa caso o resultado seja zero
     lc_Aux := Registro.CodigoEmpresa;
     with Lc_Qry do
     Begin
@@ -245,6 +247,7 @@ end;
 
 function TControllerEndereco.getAll: Boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     getByEmpresa
   else
@@ -262,8 +265,9 @@ function TControllerEndereco.getByAllFones: Boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -294,8 +298,8 @@ procedure TControllerEndereco.getByDocumento(Documento:String);
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add('SELECT e.* '+
@@ -324,8 +328,8 @@ procedure TControllerEndereco.getIdByFone;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -359,8 +363,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TEndereco;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -387,8 +392,8 @@ function TControllerEndereco.getPrincipal: Integer;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.add(' SELECT END_CODIGO '+
@@ -427,6 +432,7 @@ end;
 
 function TControllerEndereco.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

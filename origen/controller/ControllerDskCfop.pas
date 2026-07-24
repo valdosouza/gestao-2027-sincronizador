@@ -30,7 +30,7 @@ end;
 
 function TControllerDskCfop.delete: boolean;
 begin
-
+  Result := True;
 end;
 
 destructor TControllerDskCfop.Destroy;
@@ -41,17 +41,18 @@ end;
 
 function TControllerDskCfop.getByKey: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
 end;
 
 function TControllerDskCfop.insert: boolean;
 begin
-
+  Result := True;
 end;
 
 function TControllerDskCfop.save: boolean;
 begin
-
+  Result := True;
 end;
 
 end.

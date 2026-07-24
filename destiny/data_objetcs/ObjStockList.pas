@@ -17,8 +17,8 @@ Type
 
 
   public
-    constructor Create;
-    destructor Destroy;
+    constructor Create;reintroduce;
+    destructor Destroy;reintroduce;
     Property Tabela : TStockList read FTabela write setFTabela;
     Property Saldo : TListStockBalance read FSaldo write setFSaldo;
   End;

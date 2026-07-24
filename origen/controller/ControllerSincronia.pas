@@ -79,11 +79,11 @@ end;
 function TControllerSincronia.delete: boolean;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
+  Result := True;
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -108,11 +108,10 @@ end;
 procedure TControllerSincronia.deleteAfterSyncProdutos;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -148,11 +147,11 @@ end;
 function TControllerSincronia.deleteAll: Boolean;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
+  Result := True;
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -174,8 +173,8 @@ var
   I : Integer;
   Lc_RestMenu : TControllerDskRestMenu;
 begin
+  Lc_RestMenu := TControllerDskRestMenu.Create(nil);
   TRy
-    Lc_RestMenu := TControllerDskRestMenu.Create(nil);
     Lc_RestMenu.Registro.Codigo := Self.Registro.Registro;
     Lc_RestMenu.getbyId;
     Lc_RestMenu.getListbyDescription;
@@ -195,8 +194,8 @@ procedure TControllerSincronia.DeleteProcessadosAntigos;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -217,11 +216,10 @@ end;
 procedure TControllerSincronia.deleteBeforeSyncProdutos;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -273,11 +271,10 @@ end;
 procedure TControllerSincronia.deleteByTable;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -297,11 +294,10 @@ end;
 procedure TControllerSincronia.deleteByTableRegistro;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -334,16 +330,17 @@ end;
 
 function TControllerSincronia.save: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
 function TControllerSincronia.saveReturn: boolean;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TSincronia;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin  //Seleciona REgistros do Servidor
       sql.add( concat(
@@ -517,6 +514,7 @@ end;
 
 function TControllerSincronia.update: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -532,8 +530,8 @@ var
   LcLista : TSincronia;
 begin
   //Pegar os itens Para Deletar
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -590,8 +588,8 @@ var
   LcLista : TSincronia;
 begin
  //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -640,8 +638,8 @@ var
   LcLista : TSincronia;
 begin
   //Seleciona REgistros do Servidor
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -694,8 +692,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TSincronia;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin  //Seleciona REgistros do Servidor
       sql.add( concat(
@@ -771,6 +769,7 @@ end;
 
 function TControllerSincronia.insert: boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 

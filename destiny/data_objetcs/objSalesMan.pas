@@ -15,7 +15,7 @@ Type
 
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy;reintroduce;
     procedure clear;
     property Vendedor : TSalesMan read FSalesman write setFSalesman;
     property objColaborador : TobjCollaborator read FobjCollaborator write setFobjCollaborator;

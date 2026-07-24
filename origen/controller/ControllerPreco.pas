@@ -49,12 +49,12 @@ begin
   Begin
     if (TipoCalculoPreco = '1') then
     Begin
-      //Preço de Custo / [( 100 - Taxa de Lucro ) / 100 ]
+      //Preï¿½o de Custo / [( 100 - Taxa de Lucro ) / 100 ]
       Result := Fc_Vl_Custo / (( 100 - Fc_Aq_Margem) /100);
     end
     else
     Begin
-      //Preço de Custo + (Preço de Custo * Taxa de Lucro)
+      //Preï¿½o de Custo + (Preï¿½o de Custo * Taxa de Lucro)
       Result := Fc_Vl_Custo + (Fc_Vl_Custo * (Fc_Aq_Margem/100));
     end;
   end;
@@ -132,6 +132,7 @@ end;
 
 function TControllerPreco.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -162,8 +163,9 @@ function TControllerPreco.deleteByID: boolean;
 VAr
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -182,8 +184,9 @@ function TControllerPreco.deleteByTabela: boolean;
 VAr
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -208,8 +211,8 @@ Function TControllerPreco.getIdByTabelaProduto:Integer;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -242,8 +245,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TPreco;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -282,8 +285,8 @@ procedure TControllerPreco.getByTabelaProduto;
 VAr
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -311,8 +314,8 @@ procedure TControllerPreco.getByCodigo;
 VAr
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;

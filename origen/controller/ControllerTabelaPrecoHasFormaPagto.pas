@@ -59,8 +59,9 @@ function TControllerTabelaPrecoHasFormaPagto.deleteAllByTabela: boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -116,8 +117,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TSplFormaPAgto;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -136,7 +137,7 @@ begin
         LcLista := TSplFormaPAgto.Create;
         LcLista.Codigo    := FieldByname('FPT_CODIGO').AsInteger;
         LcLista.Descricao := FieldByname('FPT_DESCRICAO').AsString;
-        //Verifica se está ativo ou não
+        //Verifica se estï¿½ ativo ou nï¿½o
         Registro.FormaPagto := FieldByname('FPT_CODIGO').AsInteger;
         getbyID;
         LcLista.Ativado   := (Registro.Ativo = 'S');

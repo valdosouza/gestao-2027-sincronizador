@@ -48,6 +48,7 @@ uses un_funcoes, Un_Regra_Negocio;
 
 function TControllerMovimentoFinanceiro.atualiza: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -69,8 +70,9 @@ function TControllerMovimentoFinanceiro.DeletaByQuitacao: Boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('DELETE  ',
@@ -99,8 +101,8 @@ procedure TControllerMovimentoFinanceiro.DeleteVinculoCaixaBancoByTransferencia;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -167,6 +169,7 @@ end;
 
 function TControllerMovimentoFinanceiro.getByID: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
 end;
 
@@ -175,8 +178,9 @@ var
   Lc_Qry : TIBQuery;
   LITem : TMovimentoFinanceiro;
 begin
+  LITem := Registro;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -202,8 +206,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TMovimentoFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -235,8 +239,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TMovimentoFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -291,8 +295,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TMovimentoFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -326,8 +330,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TMovimentoFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -362,8 +366,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TMovimentoFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -395,8 +399,8 @@ function TControllerMovimentoFinanceiro.GetVinculoCaixaBancoByTransferencia: Boo
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -425,17 +429,20 @@ end;
 
 function TControllerMovimentoFinanceiro.insere: boolean;
 begin
+  Result := True;
   Registro.Codigo := nextCodigo;
   InsertObj(Registro);
 end;
 
 function TControllerMovimentoFinanceiro.migra: Boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 
 function TControllerMovimentoFinanceiro.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := nextCodigo;
   SaveObj(Registro);
@@ -445,8 +452,8 @@ procedure TControllerMovimentoFinanceiro.UpdateConferido;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(

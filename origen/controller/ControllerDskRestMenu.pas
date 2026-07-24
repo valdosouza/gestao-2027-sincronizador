@@ -80,8 +80,8 @@ procedure TControllerDskRestMenu.Ativa;
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -102,8 +102,8 @@ procedure TControllerDskRestMenu.AtualizaSeries(Operacao,Disponivel: String;Item
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       Active := False;
@@ -152,7 +152,7 @@ begin
   Finally
     FinalizaQuery(Lc_Qry);
   End;
-  //Executa a Ação
+  //Executa a Aï¿½ï¿½o
 
 end;
 
@@ -193,8 +193,9 @@ function TControllerDskRestMenu.deleteaLL: boolean;
 Var
   Lc_Qry : TibQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add('DELETE FROM TB_PRODUTO ');
@@ -207,12 +208,10 @@ end;
 
 procedure TControllerDskRestMenu.DesativarItemByCodigo(Produto: Integer);
 Var
-  I : Integer;
   Lc_Upt : TIBQuery;
-  Lc_Contatdor : Integer;
 begin
+  Lc_Upt := GeraQuery;
   Try
-    Lc_Upt := GeraQuery;
     with Lc_Upt do
     Begin
       sql.Clear;
@@ -233,12 +232,10 @@ end;
 procedure TControllerDskRestMenu.DesativarItemByName(Produto: String;
   GRupo: Integer);
 Var
-  I : Integer;
   Lc_Upt : TIBQuery;
-  Lc_Contatdor : Integer;
 begin
+  Lc_Upt := GeraQuery;
   Try
-    Lc_Upt := GeraQuery;
     with Lc_Upt do
     Begin
       sql.Clear;
@@ -263,8 +260,8 @@ procedure TControllerDskRestMenu.DesativarTodos;
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -358,8 +355,8 @@ procedure TControllerDskRestMenu.MarcaPromocao(Codigo: Integer;Ativa:Boolean);
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add('UPDATE TB_PRODUTO SET '+
@@ -384,12 +381,10 @@ end;
 
 procedure TControllerDskRestMenu.PausarHabilitarItemByCodigo(Pausa:String;Produto: Integer);
 Var
-  I : Integer;
   Lc_Upt : TIBQuery;
-  Lc_Contatdor : Integer;
 begin
+  Lc_Upt := GeraQuery;
   Try
-    Lc_Upt := GeraQuery;
     with Lc_Upt do
     Begin
       sql.Clear;
@@ -411,12 +406,10 @@ end;
 procedure TControllerDskRestMenu.PausarHabilitarItemByName(Pausa:String;Produto: String;
   GRupo: Integer);
 Var
-  I : Integer;
   Lc_Upt : TIBQuery;
-  Lc_Contatdor : Integer;
 begin
+  Lc_Upt := GeraQuery;
   Try
-    Lc_Upt := GeraQuery;
     with Lc_Upt do
     Begin
       sql.Clear;
@@ -438,6 +431,7 @@ end;
 
 function TControllerDskRestMenu.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -447,8 +441,8 @@ Var
   Lc_Upt : TIBQuery;
   Lc_Contatdor : Integer;
 begin
+  Lc_Upt := GeraQuery;
   Try
-    Lc_Upt := GeraQuery;
     with Lc_Upt do
     Begin
       sql.Clear;
@@ -473,7 +467,7 @@ begin
         ExecSQL;
         Lc_Contatdor := Lc_Contatdor + 1;
       End;
-      //Agora inicia do 1 para ajustar a ordeñação
+      //Agora inicia do 1 para ajustar a ordeï¿½aï¿½ï¿½o
       getList('');
       FProgresso.Progress := 0;
       FProgresso.MinValue := 0;
@@ -506,6 +500,7 @@ end;
 
 function TControllerDskRestMenu.save: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_PRODUTO');
 
@@ -517,6 +512,7 @@ end;
 
 function TControllerDskRestMenu.saveDatawebObjeto(DObj: TObjRestMenu): Boolean;
 begin
+  Result := True;
 end;
 
 
@@ -524,8 +520,8 @@ function TControllerDskRestMenu.temmovimento: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -559,12 +555,10 @@ end;
 function TControllerDskRestMenu.VerificaProdutoPausadoByCodigo(
   Produto: Integer): Boolean;
 Var
-  I : Integer;
   Lc_Qry : TIBQuery;
-  Lc_Contatdor : Integer;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Clear;
@@ -588,12 +582,10 @@ end;
 function TControllerDskRestMenu.VerificaProdutoPausadoByName(Produto: String;
   GRupo: Integer): Boolean;
 Var
-  I : Integer;
   Lc_Qry : TIBQuery;
-  Lc_Contatdor : Integer;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Clear;
@@ -621,8 +613,9 @@ function TControllerDskRestMenu.getbyBarCode: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -655,8 +648,8 @@ Function TControllerDskRestMenu.getByDescricao(descricao: String):Integer;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -689,8 +682,9 @@ Var
   Lc_Qry : TIBQuery;
   LcItem : TProduto;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -726,8 +720,9 @@ function TControllerDskRestMenu.getbyFactoryProduct:Boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -755,8 +750,8 @@ function TControllerDskRestMenu.getCusto: Real;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -776,10 +771,9 @@ end;
 function TControllerDskRestMenu.getField(codigo: Integer; Field: String): String;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TProduto;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -803,8 +797,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TProduto;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -817,7 +811,7 @@ begin
       sql.add(concat(
                 'FROM TB_PRODUTO p '
                 ));
-      //Criei objeto contorller para produto e para menu cardapio  Aqui é igual a Automatico
+      //Criei objeto contorller para produto e para menu cardapio  Aqui ï¿½ igual a Automatico
      sql.add(' and (PRO_TIPO = ''A'') ');
 
       if ( pos('GRP_DESCRICAO',FOrderBy) > 0 ) then
@@ -863,8 +857,8 @@ procedure TControllerDskRestMenu.getMenuToSincronia;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(

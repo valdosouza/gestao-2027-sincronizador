@@ -12,7 +12,6 @@ Type
 
   private
     FNotificaEmail: Boolean;
-    procedure setfFNotificaEmail(const Value: Boolean);
 
   public
     Registro : TCtrlEstoqueZerado;
@@ -73,11 +72,13 @@ end;
 
 function TControllerCtrlEstoqueZerado.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
 function TControllerCtrlEstoqueZerado.replace: boolean;
 begin
+  Result := True;
   replaceObj(Registro);
 end;
 
@@ -93,11 +94,6 @@ begin
   End;
 end;
 
-
-procedure TControllerCtrlEstoqueZerado.setfFNotificaEmail(const Value: Boolean);
-begin
-  FNotificaEmail := Value;
-end;
 
 function TControllerCtrlEstoqueZerado.update: boolean;
 begin
@@ -119,8 +115,9 @@ var
   Lc_Qry : TIBQuery;
   LITem : TCtrlEstoqueZerado;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

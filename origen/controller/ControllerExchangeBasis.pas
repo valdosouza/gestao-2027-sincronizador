@@ -11,7 +11,6 @@ Type
   TControllerExchangeBasis = Class(TControllerBase)
 
   private
-    function getNext:Integer;
   public
     Registro : TExchangeBasis;
     Lista : TListaExchangeItem;
@@ -57,8 +56,9 @@ function TControllerExchangeBasis.deleteByOrdem: Boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('DELETE FROM tb_exchange_basis ',
@@ -113,8 +113,9 @@ function TControllerExchangeBasis.updateExtra: Boolean;
 Var
   Lc_Qry : TIBquery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -144,6 +145,7 @@ end;
 
 function TControllerExchangeBasis.getByKey: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
 end;
 procedure TControllerExchangeBasis.getlistPendente;
@@ -151,8 +153,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TExchangeBasis;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -174,35 +176,6 @@ begin
         next;
       end;
     end;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-end;
-
-function TControllerExchangeBasis.getNext: Integer;
-Var
-  Lc_Qry : TIBquery;
-begin
-  Try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      Active := False;
-      SQL.Add(concat(
-                'select max(eb.tb_order_item_id) id ',
-                'from tb_exchange_basis eb ',
-                'where eb.tb_institution_id=:tb_institution_id ',
-                'and eb.tb_order_id = 0 '
-      ));
-      //Tabela 1 - normal
-      ParamByName('tb_institution_id').AsInteger := Registro.Estabelecimento;
-      Active := True;
-      FetchAll;
-      if (recordcount >0) then
-        Result := FieldByName('id').AsInteger + 1
-      else
-        Result := 1;
-    End;
   Finally
     FinalizaQuery(Lc_Qry);
   End;

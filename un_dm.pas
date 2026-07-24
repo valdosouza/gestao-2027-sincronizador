@@ -128,8 +128,8 @@ var
    Lc_Arq_Ini: TIniFile;
    LcPAth : String;
 begin
+  Lc_Arq_Ini := TIniFile.Create(getPathExe + 'config.ini');
   Try
-    Lc_Arq_Ini          := TIniFile.Create(getPathExe + 'config.ini');
     if ( Fc_Aq_Geral('L','SINCRONIA', 'ReceiveLocalServer','S') = 'S')  then
     Begin
       LcPAth := Lc_Arq_Ini.ReadString('SINCRONIA', 'BDPathBDServidor','');
@@ -179,8 +179,6 @@ begin
 end;
 
 procedure TDM.ExecComando(SqlTxt: String);
-Var
-  I:Integer;
 begin
   with Qr_Crud do
   Begin
@@ -195,8 +193,6 @@ begin
 end;
 
 procedure TDM.ExecConsulta(SqlTxt: String);
-Var
-I:Integer;
 begin
   with Qr_Crud do
   Begin

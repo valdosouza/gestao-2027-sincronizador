@@ -70,11 +70,13 @@ end;
 
 function TControllerCargo.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
 function TControllerCargo.replace: boolean;
 begin
+  Result := True;
   replaceObj(Registro);
 end;
 
@@ -110,8 +112,8 @@ function TControllerCargo.GetcargoVendedor: Integer;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat('select CRG_CODIGO ',
@@ -144,8 +146,9 @@ var
   Lc_Qry : TIBQuery;
   LITem : TCargo;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

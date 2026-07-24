@@ -78,6 +78,7 @@ end;
 
 function TControllerDskCashierItems.getAllByKey: boolean;
 begin
+  Result := True;
   getByKey;
 end;
 
@@ -92,8 +93,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TDskCashierItems;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

@@ -58,8 +58,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TGeral;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -85,6 +85,7 @@ end;
 
 function TControllerGeral.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 function TControllerGeral.salva: boolean;

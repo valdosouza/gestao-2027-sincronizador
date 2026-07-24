@@ -60,9 +60,6 @@ begin
 end;
 
 procedure TControllerFornecedor.fillDataObjeto(pFornecedor: TFornecedor;pObj:TObjProvider);
-Var
-  LcPhone : TPhone;
-  LcAddress : TAddress;
 begin
   pObj.clear;
   Empresa.Registro.Codigo         := pFornecedor.Codigo;
@@ -84,8 +81,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TFornecedor;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -111,6 +108,7 @@ end;
 
 function TControllerFornecedor.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -131,9 +129,9 @@ Var
   LcBase : TControllerBase;
   Lc_SqlTxt : String;
 begin
+  LcBase := TControllerBase.create(nil);
+  Lc_Qry := LcBase.GeraQuery;
   Try
-    LcBase := TControllerBase.create(nil);
-    Lc_Qry := LcBase.GeraQuery;
     with Lc_Qry do
     Begin
       Lc_SqlTxt:=' select EMP_CODIGO,EMP_NOME '+
@@ -145,18 +143,18 @@ begin
         Lc_SqlTxt:= Lc_SqlTxt + ' and (EMP_CODIGO<>:EMP_CODIGO) ';
       SQL.Add(Lc_SqlTxt);
       IF (Trim(Fc_Cd_Codigo) <> '') then
-        ParamByName('EMP_CODIGO').AsAnsiString:= Fc_Cd_Codigo;
+        ParamByName('EMP_CODIGO').AsAnsiString:= AnsiString(Fc_Cd_Codigo);
       fc_documento := RemoveCaracterInformado(fc_documento, ['.',',','/','-']);
-      ParamByName('EMP_CNPJ').AsAnsiString:= fc_documento;
+      ParamByName('EMP_CNPJ').AsAnsiString:= AnsiString(fc_documento);
       Active:=TRUE;
       FetchAll;
       if (RecordCount > 0) then
       Begin
         if Msg then
         Begin
-          MensagemPadrao('Mensagem','A T E N Ç Ã O!.'+EOLN+EOLN+
-                         'Um Fornecedor com este CPF/CNPJ já existe.'+EOLN+
-                          FieldByName('EMP_CODIGO').AsAnsiString + ' - ' + FieldByName('EMP_NOME').AsAnsiString+EOLN+
+          MensagemPadrao('Mensagem','A T E N ï¿½ ï¿½ O!.'+EOLN+EOLN+
+                         'Um Fornecedor com este CPF/CNPJ jï¿½ existe.'+EOLN+
+                          String(FieldByName('EMP_CODIGO').AsAnsiString) + ' - ' + String(FieldByName('EMP_NOME').AsAnsiString)+EOLN+
                          'Verifique e tente novamente.' +EOLN,
                          ['OK'], [bEscape], mpErro);
         End;

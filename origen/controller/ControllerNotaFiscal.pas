@@ -24,8 +24,6 @@ Type
     function getCFOPByCodigo   (Id:Integer):String;
     function getCST_IPIByCodigo(Id:Integer):String;
     function getCST_PISByCodigo(Id:Integer):String;
-    function getCST_CFSByCodigo(Id:Integer):String;
-    function getCFOPByItems:String;
 
 
     procedure FillDataInvoice(PcRegistro: TNotaFiscal;ObjInvoice:TObjInvoice);
@@ -37,10 +35,6 @@ Type
     procedure FillDataObjetoNotaItemsPIS      (PcRegistro: TNotaFiscal);
     procedure FillDataObjetoNotaItemsCOFINS   (PcRegistro: TNotaFiscal);
     procedure FillDataObjetoNotaItemsII       (PcRegistro: TNotaFiscal);
-    procedure setFDataFinal                   (const Value: TDate);
-    procedure setFDataInicial                 (const Value: TDate);
-    procedure setFPeriodo                     (const Value: Boolean);
-    procedure setFEstabelecimento             (const Value: Integer);
     procedure setFTipoNota                    (const Value: String);
     procedure setFTipoPedido                  (const Value: Integer);
 
@@ -106,14 +100,15 @@ implementation
 
 { ControllerPedido }
 
-uses Un_Regra_Negocio;
+uses Un_Regra_Negocio, Data.DB;
 
 function TControllerNotaFiscal.alteraStatus: Boolean;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -135,8 +130,9 @@ function TControllerNotaFiscal.AtualizaEmpresaNF: Boolean;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -159,8 +155,11 @@ Var
   Lc_cd_Nota, Lc_cd_Pedido: Integer;
   Lc_Qry :TIBQuery;
 Begin
+  Result := True;
+  Lc_cd_Nota := 0;
+  Lc_cd_Pedido := 0;
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     With Lc_Qry do
     BEgin
       //Lc_cd_Nota := Qr_Nota.FieldByName('NFL_CODIGO').AsInteger;
@@ -266,8 +265,9 @@ function TControllerNotaFiscal.BaixaRetorno: Boolean;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -299,8 +299,9 @@ function TControllerNotaFiscal.ControlaRetorno: Boolean;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -310,8 +311,8 @@ Begin
               ' NFL_NFL_VINCULO = :NFL_NFL_VINCULO ',
               ' where nfl_codigo  =:nfl_codigo '
       ));
-      ParamByName('nfl_ctrl_retorno').AsAnsiString:= Registro.ControlaRetorno;
-      ParamByName('NFL_NFL_VINCULO').AsAnsiString := Registro.NotaVinculada;
+      ParamByName('nfl_ctrl_retorno').AsAnsiString:= AnsiString(Registro.ControlaRetorno);
+      ParamByName('NFL_NFL_VINCULO').AsAnsiString := AnsiString(Registro.NotaVinculada);
       ExecSQL;
     end;
   Finally
@@ -368,8 +369,8 @@ Var
   Lc_Qry: TIBQuery;
   Lc_Inicio: Integer;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -400,8 +401,8 @@ function TControllerNotaFiscal.ValorTotalDesconto: Real;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -438,8 +439,8 @@ function TControllerNotaFiscal.ValorTotalPis: Real;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -479,8 +480,8 @@ function TControllerNotaFiscal.ValoTotalCofins: Real;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -515,8 +516,8 @@ function TControllerNotaFiscal.ValoTotalII: Real;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -552,8 +553,8 @@ function TControllerNotaFiscal.VerificaServico: Boolean;
 Var
   Lc_Qry: TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Clear;
@@ -903,8 +904,8 @@ var
    Lc_Qry: TIBQuery;
    Lc_SqlTxt: string;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Lc_SqlTxt := ' select max(nfe_nota_fim)Ult_NF from tb_retorno_nfe where nfe_codmha = :cod_empresa ';
@@ -924,40 +925,23 @@ end;
 
 function TControllerNotaFiscal.insere: boolean;
 begin
+  Result := True;
   Registro.Codigo := Generator('GN_NOTA_FISCAL');
   InsertObj(Registro);
 end;
 
 function TControllerNotaFiscal.migra: Boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 
 function TControllerNotaFiscal.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_NOTA_FISCAL');
   SaveObj(Registro);
-end;
-
-procedure TControllerNotaFiscal.setFDataFinal(const Value: TDate);
-begin
-  FDataFinal := Value;
-end;
-
-procedure TControllerNotaFiscal.setFDataInicial(const Value: TDate);
-begin
-  FDataInicial := Value;
-end;
-
-procedure TControllerNotaFiscal.setFEstabelecimento(const Value: Integer);
-begin
-  FEstabelecimento := Value;
-end;
-
-procedure TControllerNotaFiscal.setFPeriodo(const Value: Boolean);
-begin
-  FPeriodo := Value;
 end;
 
 procedure TControllerNotaFiscal.setFTipoNota(const Value: String);
@@ -984,8 +968,9 @@ function TControllerNotaFiscal.updateCodigoPedido: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -1005,10 +990,10 @@ end;
 function TControllerNotaFiscal.updateDataHora: boolean;
 var
   Lc_Qry : TIBQuery;
-  LITem : TNotaFiscal;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('UPDATE TB_NOTA_FISCAL SET ',
@@ -1027,8 +1012,6 @@ begin
 end;
 
 function TControllerNotaFiscal.valorFinanceiro: Real;
-var
-  Lc_Qry: TIBQuery;
 begin
   getbyId;
   pedido.Registro.Codigo := Registro.CodigoPedido;
@@ -1054,8 +1037,8 @@ procedure TControllerNotaFiscal.getbyPedido;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -1078,10 +1061,9 @@ end;
 function TControllerNotaFiscal.getCFOPByCodigo(Id: Integer): String;
 var
   Lc_Qry : TIBQuery;
-  LITem : TNotaFiscal;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT NAT_CFOP ',
@@ -1099,47 +1081,12 @@ begin
   End;
 end;
 
-function TControllerNotaFiscal.getCFOPByItems: String;
-Var
-  SqlTxt : String;
-  Lc_Qry : TIBQuery;
-Begin
-  TRy
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      active := False;
-      SQL.Add(concat(
-                'select first 1 na.nat_cfop ',
-                'from tb_nota_fiscal nf ',
-                '   inner join tb_itens_icms ic ',
-                '   on (ic.icm_codnfl = nf.nfl_codigo) ',
-                '   inner join tb_natureza na ',
-                '   on (na.nat_codigo = ic.icm_codnat) ',
-                'where nf.nfl_codigo =:nfl_codigo ',
-                'order by ic.icm_coditf '
-      ));
-      ParamByName('NFL_CODIGO').AsInteger := Registro.Codigo;
-      Active := True;
-      FetchAll;
-      if (RecordCount > 0) then
-        Result := FieldByname('nat_cfop').AsString
-      else
-        Result := '';
-    End;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-
-end;
-
 function TControllerNotaFiscal.getCodigoNotaByPedido: Integer;
 Var
-  SqlTxt : String;
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -1166,8 +1113,8 @@ Var
   SqlTxt : String;
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -1197,10 +1144,9 @@ End;
 function TControllerNotaFiscal.getCSOSNByCodigo(Id: Integer): String;
 var
   Lc_Qry : TIBQuery;
-  LITem : TNotaFiscal;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT TBI_GRUPO ',
@@ -1221,10 +1167,9 @@ end;
 function TControllerNotaFiscal.getCSTByCodigo(Id: Integer): String;
 var
   Lc_Qry : TIBQuery;
-  LITem : TNotaFiscal;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT TBI_GRUPO ',
@@ -1242,35 +1187,12 @@ begin
   End;
 end;
 
-function TControllerNotaFiscal.getCST_CFSByCodigo(Id: Integer): String;
-var
-  Lc_Qry : TIBQuery;
-begin
-  Try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      sql.add(concat('SELECT TBC_GRUPO ',
-                      'FROM TB_TRIB_CSF ',
-                      'WHERE TBC_CODIGO =:TBC_CODIGO '
-                ));
-      ParamByName('TBC_CODIGO').AsInteger := Id;
-      Active := True;
-      FetchAll;
-      First;
-      Result := FieldByName('TBC_GRUPO').AsString;
-    end;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-end;
-
 function TControllerNotaFiscal.getCST_IPIByCodigo(Id: Integer): String;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT TBI_GRUPO ',
@@ -1292,8 +1214,8 @@ function TControllerNotaFiscal.getCST_PISByCodigo(Id: Integer): String;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT TBP_GRUPO ',
@@ -1317,8 +1239,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TNotaFiscal;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT N.* ',
@@ -1378,10 +1300,9 @@ end;
 procedure TControllerNotaFiscal.getSincronia;
 var
   Lc_Qry : TIBQuery;
-  LITem : TNotaFiscal;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -1421,10 +1342,9 @@ end;
 function TControllerNotaFiscal.getTotalValue: Real;
 var
   Lc_Qry : TIBQuery;
-  LITem : TNotaFiscal;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT nfl_vl_tl_nota ',

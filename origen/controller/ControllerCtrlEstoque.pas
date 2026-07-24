@@ -58,8 +58,6 @@ Type
     procedure setFMarca(const Value: Integer);
     procedure setFSubGrupo(const Value: Integer);
     procedure SendEmail;
-    function getSaldo:Real;
-    function getDescricaoProduto:String;
     procedure setFCodigoInventario(const Value: Integer);
   protected
 
@@ -131,8 +129,8 @@ Var
   Lc_Qry : TIBQuery;
   Lc_Sequencia : Integer;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -156,8 +154,8 @@ procedure TControllerCtrlEstoque.AtivarTrighers;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add('ALTER TRIGGER TG_ESTOQUE_DELETE ACTIVE;');
@@ -196,8 +194,8 @@ procedure TControllerCtrlEstoque.DesativarTrighers;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add('ALTER TRIGGER TG_ESTOQUE_DELETE INACTIVE;');
@@ -218,12 +216,11 @@ procedure TControllerCtrlEstoque.Desregistra(Vinculo: String; Cd_Controle,
   Cd_Item_Ctrl: Integer);
 Var
   Lc_Qry :TIBQuery;
-  LcOperacao : String;
   LcITem : TCtrlEstoque;
   I : Integer;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -295,8 +292,9 @@ Var
   Lc_SqlTxt : String;
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -311,7 +309,7 @@ Begin
       SQL.ADD(Lc_SqlTxt);
 
       //Passagem de Parametros
-      ParamByName('CET_VINCULO').AsAnsiString := Registro.Vinculo;
+      ParamByName('CET_VINCULO').AsAnsiString := AnsiString(Registro.Vinculo);
 
       if ( Registro.Ordem > 0) then
         ParamByName('CET_CONTROLE').AsInteger := Registro.Ordem
@@ -328,8 +326,9 @@ function TControllerCtrlEstoque.deleteByProduto: boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -349,8 +348,9 @@ function TControllerCtrlEstoque.getByID: Boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -370,35 +370,12 @@ Begin
   end;
 end;
 
-function TControllerCtrlEstoque.getDescricaoProduto: String;
-Var
-  Lc_Qry : TIBQuery;
-Begin
-  try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      sql.Add(concat(
-                'SELECT PRO_DESCRICAO ',
-                'FROM TB_PRODUTO ',
-                'WHERE PRO_CODIGO =:PRO_CODIGO '
-      ));
-      ParamByName('PRO_CODIGO').asInteger   := Registro.Produto;
-      Active := True;
-      First;
-      REsult := FieldByName('PRO_DESCRICAO').AsString;
-    End;
-  finally
-    FinalizaQuery(Lc_Qry);
-  end;
-end;
-
 function TControllerCtrlEstoque.getIDbyControls:Integer;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -430,8 +407,8 @@ function TControllerCtrlEstoque.getIDbyControlsProducts: Integer;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -466,8 +443,8 @@ Var
   Lc_Qry : TIBQuery;
   LcItem : TProdutoSimples;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -537,8 +514,8 @@ Var
   Lc_Qry : TIBQuery;
   LcItem : TProdutoSimples;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -738,11 +715,10 @@ Var
   Lc_SqlTxt : String;
   Lc_Qry : TIbquery;
   Lc_Complemento : String;
-  LcCtrlEstoque : TControllerCtrlEstoque;
   LcReg : TCtrlEstoque;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -816,8 +792,8 @@ procedure TControllerCtrlEstoque.getlistDuplicados;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -852,31 +828,6 @@ Begin
   end;
 end;
 
-
-function TControllerCtrlEstoque.getSaldo: Real;
-Var
-  Lc_Qry : TIBQuery;
-Begin
-  try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      sql.Add(concat(
-                'select et.est_qtde ',
-                'from tb_estoque et ',
-                'where et.est_codets =:est_codets ',
-                'and et.est_codpro =:est_codpro '
-      ));
-      ParamByName('est_codets').asInteger    := Registro.Estoque;
-      ParamByName('est_codpro').asInteger   := Registro.Produto;
-      Active := True;
-      FetchAll;
-      Result := FieldByName('est_qtde').AsFloat
-    End;
-  finally
-    FinalizaQuery(Lc_Qry);
-  end;
-end;
 
 function TControllerCtrlEstoque.getSaldoByListarMovimento: Real;
 Var
@@ -913,10 +864,10 @@ Var
   LcBase : TControllerBase;
   Lc_item : TCtrlEstoque;
 Begin
+  Result := False;
+  LcBase := TControllerBase.create(nil);
+  Lc_Qry := LcBase.GeraQuery;
   Try
-    Result := False;
-    LcBase := TControllerBase.create(nil);
-    Lc_Qry := LcBase.GeraQuery;
     with Lc_Qry do
     Begin
       ///SELECT DOS DOCUMENTOS FATURADOS E SEM COMPOSIÇÃO
@@ -1177,12 +1128,11 @@ procedure TControllerCtrlEstoque.LimparTodoHistoricoByProduto;
 Var
   Lc_Qry : TIBQuery;
   LcBase : TControllerBase;
-  Lc_Data : TDate;
 begin
+  //Verifica o ultimo inventario registrado no sistema
+  LcBase := TControllerBase.create(nil);
+  Lc_Qry := LcBase.GeraQuery;
   Try
-    //Verifica o ultimo inventario registrado no sistema
-    LcBase := TControllerBase.create(nil);
-    Lc_Qry := LcBase.GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -1208,10 +1158,10 @@ Var
   LcBase : TControllerBase;
   LcItem : TCtrlEstoque;
 Begin
+  Result := False;
+  LcBase := TControllerBase.create(nil);
+  Lc_Qry := LcBase.GeraQuery;
   Try
-    Result := False;
-    LcBase := TControllerBase.create(nil);
-    Lc_Qry := LcBase.GeraQuery;
     with Lc_Qry do
     Begin
       ///SELECT DOS DOCUMENTOS FATURADOS E SEM COMPOSIÇÃO
@@ -1245,9 +1195,9 @@ Var
   Lc_Qry : TIBQuery;
   LcItem : TProdutoMovimentado;
 Begin
+  Result := False;
+  Lc_Qry := GeraQuery;
   Try
-    Result := False;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       ///SELECT DOS DOCUMENTOS FATURADOS E SEM COMPOSIÇÃO
@@ -1392,13 +1342,12 @@ end;
 
 procedure TControllerCtrlEstoque.Recontagem;
 Var
-  Lc_SqlTxt : String;
   Lc_Qtde : String;
   Lc_Qry : TIBQuery;
   LcReg : TCtrlEstoque;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -1453,12 +1402,11 @@ procedure TControllerCtrlEstoque.RecontagemDeletarByProduto;
 Var
   Lc_Qry : TIBQuery;
   LcBase : TControllerBase;
-  Lc_Data : TDate;
 begin
+  //Verifica o ultimo inventario registrado no sistema
+  LcBase := TControllerBase.create(nil);
+  Lc_Qry := LcBase.GeraQuery;
   Try
-    //Verifica o ultimo inventario registrado no sistema
-    LcBase := TControllerBase.create(nil);
-    Lc_Qry := LcBase.GeraQuery;
     with Lc_Qry do
     Begin
       if not Transaction.InTransaction then Transaction.StartTransaction;
@@ -1520,14 +1468,13 @@ end;
 
 procedure TControllerCtrlEstoque.Registra;
 Var
-  Lc_SqlTxt : String;
   Lc_Qtde : String;
   Lc_Qry : TIBQuery;
   LcReg : TCtrlEstoque;
 Begin
+  //Insere os novos registros referente a este item
+  Lc_Qry := GeraQuery;
   Try
-    //Insere os novos registros referente a este item
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     BEgin
       Active := false;
@@ -1615,9 +1562,6 @@ end;
 
 
 procedure TControllerCtrlEstoque.SendEmail;
-var
-
-  LcSaldo : Real;
 begin
 
 end;
@@ -1687,8 +1631,9 @@ function TControllerCtrlEstoque.UpdateByID: boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;

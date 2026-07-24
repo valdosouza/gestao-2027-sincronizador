@@ -46,15 +46,14 @@ End;
 procedure TSendToWebServer.SyncTable(indice: Integer);
 Var
   I: Integer;
-  Lc_Increme : Integer;
   LcSendWeb : TGeneralWeb;
 begin
   getListSincronia(FListaSincronia.registro.Tabela,FListaSincronia.registro.Tipo, 'E');
   if FSincronia.Lista.count > 0 then
   Begin
+    LcSendWeb := TGeneralSendFactory.Instanciar(FListaSincronia.registro.NomeClasse);
     try
       SetProgressBar(FSincronia.Lista.count);
-      LcSendWeb := TGeneralSendFactory.Instanciar(FListaSincronia.registro.NomeClasse);
       LcSendWeb.InstitutionDestino := FInstitutionDestino;
       LcSendWeb.URL := FURL;
       LcSendWeb.ApiKey := FApiKey;

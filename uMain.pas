@@ -98,36 +98,28 @@ type
     function validaAcesso:Boolean;
     procedure execShorCutKeyF5;
     procedure execShorCutKeyF6;
-    procedure execShorCutKeyF7;
     procedure execShorCutKeyF10;
     procedure execShorCutEsc;
 
     procedure DefineTimerAtivo;
     procedure DesativaTimer;
-    procedure finalizarSync(Sender: TObject);
     procedure tryExecIBSQL;
 
     function existTabela(Tabela : String):Boolean;
-    function existTriguer(Trigger : String):Boolean;
     function existField(Tabela,campo : String):Boolean;
-    function existGenerator(Gerador : String):Boolean;
 
     procedure ExecutaLimpezaDiaria;
     procedure FinalizarAplicacao;
     procedure execGenerator;
 
-    procedure geraSequenciaTB_CRP_ITENS;
 
 
-    procedure changeServer;
     procedure changeLocal;
 
 
 
     procedure RunScript(Script:String);
 
-    procedure UpdateDadosServidor;
-    procedure UpdateDadosLocal;
 
     procedure VerificaModoSincronia;
 
@@ -140,12 +132,10 @@ type
 
 
 
-    procedure FinalizarEnviar(Sender: TObject);
 
 
 
 
-    procedure FinalizarReceber(Sender: TObject);
 
     protected procedure WndProc(var Msg: TMessage); override;
   public
@@ -194,8 +184,8 @@ function TPrincipal.existField(Tabela, campo: String): Boolean;
 Var
   LcTatelas : TIBQuery;
 begin
+  LcTatelas := TIBQuery.Create(nil);
   Try
-    LcTatelas := TIBQuery.Create(nil);
     with LcTatelas do
     Begin
       Database    := DM.Qr_Crud.Database;
@@ -218,38 +208,6 @@ begin
     LcTatelas.Close;
     LcTatelas.DisposeOf;
   end;
-end;
-
-function TPrincipal.existGenerator(Gerador: String): Boolean;
-Var
-  Lc_Qry : TIBQuery;
-begin
-  Try
-    Lc_Qry := TIBQuery.Create(Self);
-    with Lc_Qry do
-    Begin
-      Database    := DM.Qr_Crud.Database;
-      Transaction := DM.Qr_Crud.Transaction;
-      ForcedRefresh := True;
-      sql.Clear;
-
-      sql.Add(concat(
-                'select rdb$generator_name from rdb$generatorS ',
-                'where rdb$generator_name = :nomedogenerator '
-      ));
-      ParamByName('nomedogenerator').AsString := Gerador;
-      IF not Transaction.InTransaction then Transaction.StartTransaction;
-      Active := True;
-      IF Transaction.InTransaction then Transaction.CommitRetaining;
-      FetchAll;
-      result := (recordCount > 0);
-
-    End;
-  Finally
-    Lc_Qry.Close;
-    Lc_Qry.DisposeOf;
-  End;
-
 end;
 
 function TPrincipal.existTabela(Tabela : String):Boolean;
@@ -276,36 +234,6 @@ begin
     result := (recordCount > 0);
   End;
 end;
-function TPrincipal.existTriguer(Trigger: String): Boolean;
-Var
-  LcTatelas : TIBQuery;
-begin
-  LcTatelas := TIBQuery.Create(Self);
-  with LcTatelas do
-  Begin
-    Database    := DM.Qr_Crud.Database;
-    Transaction := DM.Qr_Crud.Transaction;
-    ForcedRefresh := True;
-    sql.Clear;
-    sql.Add(concat(
-              'SELECT RDB$TRIGGER_NAME ',
-              'FROM RDB$TRIGGERS ',
-              'where RDB$TRIGGER_NAME =:Trigger '
-      ));
-    ParamByName('Trigger').AsString := Trigger;
-    Active := True;
-    FetchAll;
-    result := (recordCount > 0);
-  End;
-end;
-
-
-procedure TPrincipal.finalizarSync(Sender: TObject);
-begin
-
-end;
-
-
 procedure TPrincipal.DefineTimerAtivo;
 Var
   LcInterval : String;
@@ -336,12 +264,14 @@ end;
 
 function TPrincipal.AjustaFaturamento: boolean;
 begin
+  Result := True;
 end;
 
 function TPrincipal.AjustaGenerator: boolean;
 Var
   LcEmpresa:TControllerEmpresa;
 begin
+  Result := True;
   try
     try
       LcEmpresa := TControllerEmpresa.Create(Self);
@@ -437,11 +367,6 @@ begin
 
 end;
 
-procedure TPrincipal.execShorCutKeyF7;
-begin
-
-end;
-
 procedure TPrincipal.ExecutaLimpezaDiaria;
 Var
   LcSincronia : TControllerSincronia;
@@ -449,8 +374,8 @@ begin
   // Decisao 9: 1x por dia remove da TB_SINCRONIA o que ja foi processado
   // com sucesso (SRC_LOG='OK') ha mais de 48 horas.
   if FUltimaLimpeza = Date then Exit;
+  LcSincronia := TControllerSincronia.Create(nil);
   Try
-    LcSincronia := TControllerSincronia.Create(nil);
     LcSincronia.DeleteProcessadosAntigos;
     FUltimaLimpeza := Date;
   Finally
@@ -460,9 +385,6 @@ end;
 
 
 procedure TPrincipal.changeLocal;
-Var
-  I : Integer;
-  LcDateTime : TDateTime;
 begin
   RunScript('UPDATE tb_medida SET MED_ESPECIAL = ''PIZZA'' WHERE MED_ESPECIAL = ''PIZZAS'' ;');
   RunScript('UPDATE tb_medida SET MED_ESPECIAL = ''BEBIDA'' WHERE MED_ESPECIAL = ''BEBIDAS'' ;');
@@ -631,69 +553,7 @@ begin
 
 end;
 
-procedure TPrincipal.changeServer;
-begin
-  if not existField('TB_RETORNO_NFC','NFC_SERIE') then
-  Begin
-    with DM.IBSQL do
-    Begin
-      Database    := DM.IBD_Servidor;
-      Transaction := DM.IBT_Servidor;
-      sql.Clear;
-      sql.Add('ALTER TABLE TB_RETORNO_NFC ADD NFC_SERIE integer;');
-      tryExecIBSQL;
-    End;
-  End;
-
-  if not existField('TB_RETORNO_NFE','NFC_SERIE') then
-  Begin
-    with DM.IBSQL do
-    Begin
-        sql.Clear;
-        sql.Add('ALTER TABLE tb_retorno_nfe ADD NFE_SERIE integer;');
-        tryExecIBSQL;
-    End;
-  End;
-
-  if not existField('TB_RETORNO_NFC','NFC_NUMERO') then
-  Begin
-    with DM.IBSQL do
-    Begin
-        sql.Clear;
-        sql.Add('ALTER TABLE TB_RETORNO_NFC ADD NFC_NUMERO INTEGER;');
-        tryExecIBSQL;
-    End;
-  End;
-
-  with DM.IBSQL do
-  Begin
-    sql.Clear;
-    sql.Add(concat(
-              'update RDB$RELATION_FIELDS set ',
-              'RDB$NULL_FLAG = 1 ',
-              'where (RDB$FIELD_NAME = ''NFC_CODMHA'') and ',
-              '(RDB$RELATION_NAME = ''TB_RETORNO_NFC'') '
-    ));
-    tryExecIBSQL;
-  End;
-
-  with DM.IBSQL do
-  Begin
-    sql.Clear;
-    sql.Add('DROP TRIGGER TG_RETORNO_NFC;');
-    tryExecIBSQL;
-  End;
-
-end;
-
-
-
-
 procedure TPrincipal.InitVariable;
-Var
-  Lc_DLabel : Array[0..11] of Char;
-  ipbuffer : string;
-  nsize : dword;
 begin
   GeralogFile('TPrincipal.InitVariable','Roteador - Abertura');
   Dtp_Inicio.DateTime := Now;
@@ -790,58 +650,6 @@ begin
   end;
 end;
 
-procedure TPrincipal.geraSequenciaTB_CRP_ITENS;
-var
-  Lc_Qry : TIBQuery;
-  Lc_Upt: TIBQuery;
-  Lc_aux :String;
-  Lc_ItensId : Integer;
-begin
-  try
-    Lc_Upt := TIBQuery.Create(Self);
-    with Lc_Upt do
-    Begin
-      Database    := DM.Qr_Crud.Database;
-      Transaction := DM.Qr_Crud.Transaction;
-      ForcedRefresh := True;
-      sql.Clear;
-
-      SQL.Clear;
-      SQL.Add('UPDATE TB_CRP_ITENS SET CPI_CODIGO =:CPI_CODIGO WHERE (CPI_SABOR = :CPI_SABOR) AND (CPI_CODPRO =:CPI_CODPRO);  ' );
-    end;
-    Lc_Qry := TIBQuery.Create(Self);
-    with Lc_Qry do
-    Begin
-      Database    := DM.Qr_Crud.Database;
-      Transaction := DM.Qr_Crud.Transaction;
-      ForcedRefresh := True;
-      SQL.Clear;
-      SQL.Add('SELECT CPI_SABOR,CPI_CODPRO FROM  TB_CRP_ITENS  WHERE (CPI_CODIGO IS NULL) or (CPI_CODIGO = 0)  ' );
-      active := True;
-    end;
-    Lc_ItensId := 0;
-    Lc_Qry.First;
-    while not Lc_Qry.eof do
-    Begin
-      Lc_Upt.close;
-      Lc_ItensId := Lc_ItensId + 1;
-      Lc_Upt.paramByName('CPI_CODIGO').AsInteger  := Lc_ItensId;
-      Lc_Upt.paramByName('CPI_SABOR').AsString    := Lc_Qry.FieldByName('CPI_SABOR').AsString;
-      Lc_Upt.paramByName('CPI_CODPRO').AsInteger  := Lc_Qry.FieldByName('CPI_CODPRO').AsInteger;
-      if not Lc_Upt.Transaction.InTransaction then Lc_Upt.Transaction.StartTransaction;
-      Lc_Upt.ExecSQL;
-      if Lc_Upt.Transaction.InTransaction then Lc_Upt.Transaction.commit;
-      Lc_Qry.Next;
-    End;
-    RunScript(concat('set generator GN_CRP_ITENS TO ',Lc_ItensId.ToString,';'));
-  finally
-    Lc_Qry.close;
-    Lc_Qry.DisposeOf;
-    Lc_Upt.close;
-    Lc_Upt.DisposeOf;
-  end;
-end;
-
 procedure TPrincipal.WndProc(var Msg: TMessage);
 var
   Lc_P: TPoint;
@@ -877,8 +685,8 @@ procedure TPrincipal.RunScript(Script: String);
 VAr
   Lc_Upt : TIBQuery;
 begin
+  Lc_Upt := TIBQuery.Create(Self);
   try
-    Lc_Upt := TIBQuery.Create(Self);
     with Lc_Upt do
     Begin
       if (not DM.Qr_Crud.Transaction.InTransaction) then DM.Qr_Crud.Transaction.StartTransaction;
@@ -909,9 +717,9 @@ Var
 begin
   if validaAcesso then
   Begin
+    Form := TTasConfig.Create(nil);
     Try
       DesativaTimer;
-      Form := TTasConfig.Create(nil);
       Form.ShowModal;
     Finally
       Form.DisposeOf;
@@ -964,52 +772,6 @@ end;
 procedure TPrincipal.MnuFecharClick(Sender: TObject);
 begin
   Self.Close;
-end;
-
-procedure comando(wCOMANDO:String);
-var
-  Lc_pi: TProcessInformation;
-  Lc_si: TStartupInfo;
-  Lc_RESULT:boolean;
-begin
-  FillMemory( @Lc_si, sizeof( Lc_si ), 0 );
-  FillChar ( Lc_si, Sizeof (Lc_si), #0);
-  Lc_si.cb := sizeof( Lc_si );
-  Lc_si.dwFlags := STARTF_USESHOWWINDOW;
-  Lc_si.wShowWindow:=SW_HIDE;
-  if Lc_Result then
-    begin
-    WaitForSingleObject(Lc_PI.hProcess, INFINITE);
-    //Libera os Handles
-    CloseHandle(Lc_pi.hProcess);
-    CloseHandle(Lc_pi.hThread);
-    end;
-end;
-
-procedure TPrincipal.FinalizarEnviar(Sender: TObject);
-begin
-  Try
-    AtivaInterface(True);
-    chbx_setTimeTo.Checked := False;
-    Lb_Processamento.Caption := 'Processo de Envio - Aguarde parando a execu��o.....';
-    Lb_Processamento.Update;
-  except
-    on E: Exception do
-      GeralogCrashlytics('Roteador.FinalizarEnviar',E.Message);
-  end;
-end;
-
-procedure TPrincipal.FinalizarReceber(Sender: TObject);
-begin
-  Try
-    AtivaInterface(True);
-    chbx_setTimeTo.Checked := False;
-    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execu��o.....';
-    Lb_Processamento.Update;
-  except
-    on E: Exception do
-      GeralogCrashlytics('Roteador.FinalizarReceber',E.Message);
-  end;
 end;
 
 procedure TPrincipal.FinalizarSincronia(Sender: TObject);
@@ -1094,102 +856,11 @@ begin
   End;
 end;
 
-procedure TPrincipal.UpdateDadosLocal;
-begin
-  with DM.Qr_Acao do
-  Begin
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE TB_FORMAPAGTO SET ',
-            ' FPT_LIMITE  = ''N'' '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE TB_COLABORADOR SET ',
-            ' CLB_SITUACAO  = ''N'' '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE TB_PRODUTO SET ',
-            ' PRO_CODRVT  = 0 '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE TB_CLIENTE SET ',
-            ' CLI_ISS_NR_PROCESSO = 0 '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE TB_CONTABANCARIA  SET ',
-            ' CTB_VL_LIMITE = 0 '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-              'UPDATE TB_PLANOCONTAS SET ',
-              'PLC_DESCRICAO = PLC_DESCRICAO ||  '' '' '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-
-
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE tb_movim_financeiro M SET ',
-            ' M.MVF_ID_ECF = 1 '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-  End;
-end;
-
-procedure TPrincipal.UpdateDadosServidor;
-begin
-  with DM.Qr_Acao do
-  Begin
-    if not DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.StartTransaction;
-    Active := False;
-    sql.Clear;
-    sql.Add(concat(
-            'UPDATE tb_movim_financeiro M SET ',
-            ' M.MVF_ID_ECF = 1 '
-    ));
-    ExecSQL;
-    if DM.Qr_Acao.Transaction.InTransaction then DM.Qr_Acao.Transaction.Commit;
-  End;
-end;
-
 function TPrincipal.validaAcesso: Boolean;
+{$IFNDEF DEBUG}
 Var
   LcCodigo : String;
+{$ENDIF}
 begin
   REsult := True;
   {$IFNDEF DEBUG}
@@ -1217,8 +888,8 @@ begin
   // a partir da data/hora escolhida na tela.
   if chbx_setTimeTo.Checked then
   Begin
+    LcLista := TControllerListaSincronia.Create(nil);
     try
-      LcLista := TControllerListaSincronia.Create(nil);
       LcDateTime := Trunc(Dtp_Inicio.DateTime) + Frac(Dtp_Hora.DateTime);
       case rdg_Top_Right.ItemIndex of
         0:LcLista.SetLastUpdateAll('E', LcDateTime);

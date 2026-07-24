@@ -22,7 +22,7 @@ type
     procedure ClearFields(T: TComponent);
   public
     { Public declarations }
-    //Controlar a ativação da edição da tela
+    //Controlar a ativaï¿½ï¿½o da ediï¿½ï¿½o da tela
     CodigoRegistro : Integer;
 
   end;
@@ -38,7 +38,7 @@ implementation
 
 procedure TBaseForm.ClearFields(T: TComponent);
 Var
-  I,J:Integer;
+  I:Integer;
 begin
   with T do
   Begin

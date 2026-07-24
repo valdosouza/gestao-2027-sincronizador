@@ -69,8 +69,9 @@ function TControllerDskCategory.getAutoCreateByGrupo(Institute:Integer;Pc_Grupo:
 var
   Lc_Qry: TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -79,7 +80,7 @@ begin
                      'WHERE DESCRIPTION =:DESCRIPTION AND (CHARACTER_LENGTH(POSIT_LEVEL) =3) ',
                      'ORDER BY POSIT_LEVEL'
       ));
-      ParamByName('DESCRIPTION').AsAnsiString := Pc_Grupo;
+      ParamByName('DESCRIPTION').AsAnsiString := AnsiString(Pc_Grupo);
       Active := True;
       FetchAll;
       exist := ( recordCount>0 );
@@ -106,8 +107,9 @@ function TControllerDskCategory.getAutoCreateBySubGrupo(Institute:Integer;NivelP
 var
   Lc_Qry: TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -117,8 +119,8 @@ begin
                      ' AND (POSIT_LEVEL > :POSIT_LEVEL) ',
                      'ORDER BY POSIT_LEVEL'
       ));
-      ParamByName('DESCRIPTION').AsAnsiString := Pc_Subgrupo;
-      ParamByName('POSIT_LEVEL').AsAnsiString := NivelPosicao;
+      ParamByName('DESCRIPTION').AsAnsiString := AnsiString(Pc_Subgrupo);
+      ParamByName('POSIT_LEVEL').AsAnsiString := AnsiString(NivelPosicao);
       Active := True;
       FetchAll;
       exist := ( recordCount>0 );
@@ -145,6 +147,7 @@ end;
 
 function TControllerDskCategory.getByKey: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
 end;
 
@@ -153,8 +156,9 @@ Var
   Lc_Qry : TIBQuery;
   LcCat : TDskCategory;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -191,7 +195,7 @@ end;
 
 function TControllerDskCategory.InsertByGroupSubGroup: Boolean;
 begin
-
+  Result := True;
 end;
 
 function TControllerDskCategory.save: boolean;

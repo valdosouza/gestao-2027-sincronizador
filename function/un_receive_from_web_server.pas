@@ -42,12 +42,11 @@ End;
 procedure TreceiveFromWebServer.SyncTable(indice: Integer);
 Var
   I: Integer;
-  Lc_Increme : Integer;
   LcReceiveWeb : TGeneralWeb;
 begin
+  LcReceiveWeb := TGeneralSendFactory.Instanciar(FListaSincronia.registro.NomeClasse);
   try
     SetProgressBar(FSincronia.Lista.count);
-    LcReceiveWeb := TGeneralSendFactory.Instanciar(FListaSincronia.registro.NomeClasse);
     LcReceiveWeb.InstitutionDestino := FInstitutionDestino;
     LcReceiveWeb.URL := FURL;
     LcReceiveWeb.Metodo := 'Get';

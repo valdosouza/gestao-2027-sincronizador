@@ -6,6 +6,7 @@ Uses TEntity,CAtribEntity;
 
 Type
   //nome da classe de entidade
+  {$M+}
   [TableName('TB_CIDADE')]
   TCidade = Class(TGenericEntity)
   private

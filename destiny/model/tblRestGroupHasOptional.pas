@@ -12,14 +12,12 @@ Type
   private
     Ftb_product_id: Integer;
     Fprice_tag: Real;
-    FId: Integer;
     Fupdated_at: TDAteTime;
     Ftb_institution_id: Integer;
     Ftb_rest_group_id: Integer;
     Fcreated_at: TDAteTime;
     Fquantity: Real;
     procedure setFcreated_at(const Value: TDAteTime);
-    procedure setFId(const Value: Integer);
     procedure setFprice_tag(const Value: Real);
     procedure setFtb_institution_id(const Value: Integer);
     procedure setFtb_product_id(const Value: Integer);
@@ -62,11 +60,6 @@ implementation
 procedure TRestGroupHasOptional.setFcreated_at(const Value: TDAteTime);
 begin
   Fcreated_at := Value;
-end;
-
-procedure TRestGroupHasOptional.setFId(const Value: Integer);
-begin
-  FId := Value;
 end;
 
 procedure TRestGroupHasOptional.setFprice_tag(const Value: Real);

@@ -36,10 +36,9 @@ uses Un_sistema, Un_funcoes,Un_Regra_Negocio;
 function TControllerCidade.Buscacodigo(IBGE:Integer; Descricao,UF:String): Integer;
 Var
   Lc_Qry : TIBQuery;
-  Lc_SqlTxt : String;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
       Begin
       if (IBGE > 0) then
@@ -52,8 +51,8 @@ begin
         SQL.Add('select CDD_CODIGO '+
                 'FROM TB_CIDADE '+
                 'WHERE CDD_DESCRICAO=:CDD_DESCRICAO AND CDD_UF =:CDD_UF');
-        ParamByName('CDD_DESCRICAO').AsAnsiString := Descricao;
-        ParamByName('CDD_UF').AsAnsiString := UF;
+        ParamByName('CDD_DESCRICAO').AsAnsiString := AnsiString(Descricao);
+        ParamByName('CDD_UF').AsAnsiString := AnsiString(UF);
         end;
       Active := True;
       FetchAll;
@@ -105,6 +104,7 @@ end;
 
 function TControllerCidade.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -141,8 +141,9 @@ var
   Lc_Qry : TIBQuery;
   LITem : TCidade;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

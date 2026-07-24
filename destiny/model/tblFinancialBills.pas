@@ -21,7 +21,6 @@ Type
     Fcreated_at: TDAteTime;
     Fparcel: Integer;
     FTerminal: Integer;
-    Fid: Integer;
     procedure setFcreated_at(const Value: TDAteTime);
     procedure setFkind(const Value: String);
     procedure setFnumber(const Value: String);
@@ -34,7 +33,6 @@ Type
     procedure setFtb_order_id(const Value: Integer);
     procedure setFupdated_at(const Value: TDAteTime);
     procedure setFTerminal(const Value: Integer);
-    procedure setFid(const Value: Integer);
 
 
 
@@ -91,11 +89,6 @@ implementation
 procedure TFinancialBills.setFcreated_at(const Value: TDAteTime);
 begin
   Fcreated_at := Value;
-end;
-
-procedure TFinancialBills.setFid(const Value: Integer);
-begin
-  Fid := Value;
 end;
 
 procedure TFinancialBills.setFkind(const Value: String);

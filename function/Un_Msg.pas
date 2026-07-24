@@ -63,7 +63,6 @@ procedure TFormMsg.Pc_Aciona_Escolha(Sender: TObject);
   Var
     Lc_Botao : TBitBtn;
 begin
-  Lc_Botao := TBitBtn.Create(Self);
   Lc_Botao := TBitBtn(Sender);
   It_Cd_Escolha := Lc_Botao.Tag;
   Close;
@@ -73,7 +72,6 @@ procedure TFormMsg.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
   Action := Cafree;
-  Self := Nil
 end;
 
 procedure TFormMsg.FormKeyPress(Sender: TObject; var Key: Char);
@@ -133,7 +131,7 @@ begin
       ButtonSpacing := MulDiv(mcButtonSpacing, DialogUnits.X, 4);
       Position := poScreenCenter;
       KeyPreview := True;
-      //Muda o estilo da fonte para bold, apenas para realizar os cálculos
+      //Muda o estilo da fonte para bold, apenas para realizar os cï¿½lculos
       Font.Style := [fsBold];
       Color      := Lc_Cor;
       Font.Color := clBlack;
@@ -203,7 +201,7 @@ begin
         end;
       end;
 
-    {Escreve a mensagem no formulário}
+    {Escreve a mensagem no formulï¿½rio}
     with TLabel.Create(Formulario) do
       begin
       Name := 'Message';

@@ -52,8 +52,8 @@ procedure TControllerEmpresa.AtualizaBanco;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -156,7 +156,7 @@ Var
   LcPhone : TPhone;
   LcAddress : TAddress;
 begin
-  pObj.Entidade.Registro.Codigo              := 0;//Sempre zero pois será redefnido no Sistema Web
+  pObj.Entidade.Registro.Codigo              := 0;//Sempre zero pois serï¿½ redefnido no Sistema Web
   pObj.Entidade.Registro.NomeRazao           := pEmpresa.NomeRazaoSocial;
   pObj.Entidade.Registro.ApelidoFantasia     := pEmpresa.ApelidoFantasia;
   pObj.Entidade.Registro.AniversarioFundacao := pEmpresa.DataFundacao;
@@ -175,7 +175,7 @@ begin
 
   if pEmpresa.TipoPessoa = 'F' then
   Begin
-    pObj.Fisica.Codigo              := 0; //Sempre zero pois será redefnido no Sistema Web
+    pObj.Fisica.Codigo              := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
     pObj.Fisica.CPF                 := pEmpresa.CpfCNPJ;
     pObj.Fisica.RG                  := pEmpresa.InscricaoEstadual;
     pObj.Fisica.DataEmissao         := pEmpresa.DataCadastro;
@@ -186,7 +186,7 @@ begin
   End
   else
   Begin
-    pObj.Juridica.Codigo                  := 0; //Sempre zero pois será redefnido no Sistema Web
+    pObj.Juridica.Codigo                  := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
     pObj.Juridica.CNPJ                    := pEmpresa.CpfCNPJ;
     pObj.Juridica.InscricaoEstadual       := pEmpresa.InscricaoEstadual;
     pObj.Juridica.InscricaoMunicipal      := pEmpresa.InscricaoMunicipal;
@@ -207,7 +207,7 @@ begin
   if Endereco.Registro.Codigo > 0 then
   Begin
     LcAddress := TAddress.Create;
-    LcAddress.Codigo        := 0; //Sempre zero pois será redefnido no Sistema Web
+    LcAddress.Codigo        := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
     LcAddress.Logradouro    := Endereco.Registro.Logradouro;
     LcAddress.NumeroPredial := Endereco.Registro.NumeroPredial;
     LcAddress.Complemento   := Endereco.Registro.Complemento;
@@ -226,7 +226,7 @@ begin
     if Endereco.Registro.Fone <> '' then
     BEgin
       LcPhone := TPhone.Create;
-      LcPhone.Codigo       := 0; //Sempre zero pois será redefnido no Sistema Web
+      LcPhone.Codigo       := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
       LcPhone.Tipo         := 'Fone';
       LcPhone.Contato      := Endereco.Registro.Contato;
       LcPhone.Numero       := Endereco.Registro.Fone;
@@ -238,7 +238,7 @@ begin
     if Endereco.Registro.Fax <> '' then
     BEgin
       LcPhone := TPhone.Create;
-      LcPhone.Codigo       := 0; //Sempre zero pois será redefnido no Sistema Web
+      LcPhone.Codigo       := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
       LcPhone.Tipo         := 'Fax';
       LcPhone.Contato      := Endereco.Registro.Contato;
       LcPhone.Numero       := Endereco.Registro.Fax;
@@ -250,7 +250,7 @@ begin
     if Endereco.Registro.Celular <> '' then
     BEgin
       LcPhone := TPhone.Create;
-      LcPhone.Codigo       := 0; //Sempre zero pois será redefnido no Sistema Web
+      LcPhone.Codigo       := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
       LcPhone.Tipo         := 'Celular';
       LcPhone.Contato      := Endereco.Registro.Contato;
       LcPhone.Numero       := Endereco.Registro.Celular;
@@ -262,14 +262,14 @@ begin
 
   if Registro.Email <> '' then
   Begin
-    pObj.Entidade.Email.Codigo := 0; //Sempre zero pois será redefnido no Sistema Web
+    pObj.Entidade.Email.Codigo := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
     pObj.Entidade.Email.Email := pEmpresa.Email;
   End;
 
   //Social Midia
   if pEmpresa.WebSite <> '' then
   Begin
-    pObj.Entidade.MidiaSocial.Codigo := 0; //Sempre zero pois será redefnido no Sistema Web
+    pObj.Entidade.MidiaSocial.Codigo := 0; //Sempre zero pois serï¿½ redefnido no Sistema Web
     pObj.Entidade.MidiaSocial.Tipo   := 'www';
     pObj.Entidade.MidiaSocial.Link   := pEmpresa.WebSite;
   End;
@@ -277,6 +277,7 @@ end;
 
 function TControllerEmpresa.salva: boolean;
 begin
+  Result := True;
   if (Registro.Codigo = 0 ) then
     Registro.Codigo := Generator('GN_EMPRESA');
   SaveObj(Registro);
@@ -446,8 +447,8 @@ procedure TControllerEmpresa.getByDocumento;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -477,8 +478,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TEmpresa;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -506,8 +508,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TEmpresa;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -555,6 +558,7 @@ end;
 
 function TControllerEmpresa.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

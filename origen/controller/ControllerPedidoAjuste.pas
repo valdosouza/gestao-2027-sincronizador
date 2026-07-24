@@ -46,7 +46,6 @@ procedure TControllerPedidoAjuste.FillDataObjeto(PcReg: TPedido);
 Var
   I : Integer;
   lcitems : TOrderItem;
-  Lc_Colab : TControllercolaborador;
 begin
   //Order
   Obj.Order.Codigo          := PcReg.Codigo;
@@ -67,7 +66,7 @@ begin
   Obj.OrderStockAdjust.Numero          := PcReg.Numero;
   Obj.OrderStockAdjust.Destinatario    := 0;
 
-  //Items Lembrando que o NFL_Codigo será o tb_order_id
+  //Items Lembrando que o NFL_Codigo serï¿½ o tb_order_id
   Itens.Registro.CodigoNota := PcReg.Codigo;
   Itens.getListByNF;
   if Itens.Lista.Count > 0 then

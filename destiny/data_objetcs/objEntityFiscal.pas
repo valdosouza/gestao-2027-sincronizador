@@ -20,7 +20,7 @@ Type
 
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy;reintroduce;
     procedure clear;
     property Entidade : TObjEntity read FobjEntity write setFobjEntity;
     property Fisica : TPerson read Fperson write setFperson;

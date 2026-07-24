@@ -32,6 +32,7 @@ uses Un_Regra_Negocio;
 
 function TControllerItensII.atualiza: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -54,8 +55,8 @@ procedure TControllerItensII.getByItemNota;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -77,8 +78,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TItensII;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -122,8 +123,8 @@ function TControllerItensII.nextCodigo: Integer;
 var
   Lc_Qry: TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -142,6 +143,7 @@ end;
 
 function TControllerItensII.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

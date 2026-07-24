@@ -76,6 +76,7 @@ end;
 
 function TControllerEmbalagem.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -91,6 +92,7 @@ end;
 
 function TControllerEmbalagem.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_EMBALAGEM');
   SaveObj(Registro);
@@ -110,8 +112,8 @@ procedure TControllerEmbalagem.getbyDescricao;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -155,8 +157,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TEmbalagem;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

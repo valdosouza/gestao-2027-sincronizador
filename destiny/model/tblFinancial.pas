@@ -18,7 +18,6 @@ Type
     Ftb_order_id: Integer;
     Fcreated_at: TDAteTime;
     Fparcel: Integer;
-    Fid: Integer;
     procedure setFcreated_at(const Value: TDAteTime);
     procedure setFdt_expiration(const Value: TDateTime);
     procedure setFparcel(const Value: Integer);
@@ -28,7 +27,6 @@ Type
     procedure setFtb_payment_types_id(const Value: Integer);
     procedure setFTerminal(const Value: Integer);
     procedure setFupdated_at(const Value: TDAteTime);
-    procedure setFid(const Value: Integer);
 
   public
 
@@ -77,11 +75,6 @@ end;
 procedure Tfinancial.setFdt_expiration(const Value: TDateTime);
 begin
   Fdt_expiration := Value;
-end;
-
-procedure Tfinancial.setFid(const Value: Integer);
-begin
-  Fid := Value;
 end;
 
 procedure Tfinancial.setFparcel(const Value: Integer);

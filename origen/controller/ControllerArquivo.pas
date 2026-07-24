@@ -104,8 +104,9 @@ function TControllerArquivo.DeleteByVinculo: Boolean;
 Var
   Lc_Qry : TibQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -136,9 +137,8 @@ var
   Lc_Qry : TIBQuery;
   LcPos : Integer;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
-
     Lc_Qry.SQL.Add(concat(
               'SELECT ARQ_CONTEUDO, ARQ_CODVCL ',
               'FROM TB_ARQUIVOS ',
@@ -187,7 +187,7 @@ begin
       end;
 
       { Prepara o conteúdo binário, codificando-o como um texto }
-      Obj.Content := EncodeBase64(LcConteudo);
+      Obj.Content := String(EncodeBase64(AnsiString(LcConteudo)));
     End;
 
   Finally
@@ -204,8 +204,8 @@ procedure TControllerArquivo.getbyVinculo;
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -231,11 +231,10 @@ end;
 function TControllerArquivo.getfilenameNFSE(NOtaID: Integer): String;
 var
   Lc_Qry : TIBQuery;
-  LITem : TArquivo;
 begin
+  Result := '';
+  Lc_Qry := GeraQuery;
   Try
-    Result := '';
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -258,11 +257,10 @@ end;
 function TControllerArquivo.getfilenameRPS(NOtaID: Integer): String;
 var
   Lc_Qry : TIBQuery;
-  LITem : TArquivo;
 begin
+  Result := '';
+  Lc_Qry := GeraQuery;
   Try
-    Result := '';
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -285,10 +283,10 @@ end;
 function TControllerArquivo.getFirst: boolean;
 var
   Lc_Qry : TIBQuery;
-  LITem : TArquivo;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(Concat(
@@ -316,8 +314,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TArquivo;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add( getListSQL );
@@ -350,8 +348,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TArquivo;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       if NFirst > 0 then
@@ -550,8 +548,8 @@ BEGIN
    6 - Arquivo de XML da Nota Fiscal de Serviço eletronica
    7 - Arquivo de XML da MDFE
   }
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -593,8 +591,8 @@ BEGIN
    6 - Arquivo de XML da Nota Fiscal de Serviço eletronica
    7 - Arquivo de XML da MFDE
   }
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -635,8 +633,8 @@ function TControllerArquivo.VerificaCodigoVinculoCartaCorrecao(
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('select CCE_CODIGO from TB_CARTA_CORRECAO WHERE CCE_CODNFL =:CCE_CODNFL');
@@ -658,8 +656,8 @@ function TControllerArquivo.VerificaCodigoVinculoNFCeArquivo(
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('select NFC_CODIGO from TB_RETORNO_NFC WHERE NFC_CODNFL =:NFC_CODNFL');
@@ -680,8 +678,8 @@ function TControllerArquivo.VerificaCodigoVinculoNFeArquivo(Fc_cd_Nota: Integer)
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('select NFE_CODIGO from TB_RETORNO_NFE WHERE NFE_CODNFL =:NFE_CODNFL');

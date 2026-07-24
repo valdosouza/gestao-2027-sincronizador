@@ -36,8 +36,8 @@ Type
     procedure setFitems(const Value: TItemsArray);
     procedure setFtb_user_id(const Value: Integer);
   public
-      constructor Create;
-      destructor Destroy;
+      constructor Create; override;
+      destructor Destroy; override;
       procedure setArrayItems(i:Integer);
       property Codigo : Integer  read Fid write setFid;
       property Data : TDateTime  read Fdt_record write setFdt_record;

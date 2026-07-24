@@ -27,8 +27,8 @@ Type
     procedure setFsocialmedia(const Value: TSocialMedia);
     procedure setFMailing(const Value: TMailing);
   public
-    constructor Create;
-    destructor Destroy;
+    constructor Create;reintroduce;
+    destructor Destroy;reintroduce;
     procedure clear;virtual;
     procedure setArrayAddress(i:Integer);
     procedure setArrayPhone(i:Integer);

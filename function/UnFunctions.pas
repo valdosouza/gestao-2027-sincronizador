@@ -113,17 +113,18 @@ end;
 function StrZero(Num : Real ; Zeros,Deci: integer): string;
 var tam,z : integer;
     res,zer : string;
+    resShort : ShortString; // Str() escreve ShortString; cast explicito evita W1057
     lc_negativo : boolean;
 begin
-   //verifica se o numero é negativo
+   //verifica se o numero ï¿½ negativo
    Lc_Negativo := False;
    if Num < 0 then
    begin
       Lc_Negativo := True;
       Num := Num * -1;
    end;
-   Str(Num:Zeros:Deci, res);
-   res := trim(res);
+   Str(Num:Zeros:Deci, resShort);
+   res := trim(String(resShort));
    tam := Length(res);
    zer := '';
    for z := 1 to (Zeros-tam) do
@@ -142,8 +143,8 @@ end;
 
 
 {-----------------------------
- Função : StrTran
- Descrição : Procura pelas ocorrencias de um caracter numa
+ Funï¿½ï¿½o : StrTran
+ Descriï¿½ï¿½o : Procura pelas ocorrencias de um caracter numa
              string e troca por outro valor.
 ------------------------------}
 function StrTran(Entra: string ; Search: string ; Replace : string): string;
@@ -189,7 +190,6 @@ end;
 
 function ValidaCPF_CNPJ(number:String):boolean;
 Begin
-  Result := True;
   if ( Length(number) = 14 ) then
     result := CalculoCNPJ(number)
   else
@@ -199,7 +199,7 @@ End;
 
 
 function CalculoCnpj(xCGC: string): Boolean;
-{Testa se o CGC é válido ou não}
+{Testa se o CGC ï¿½ vï¿½lido ou nï¿½o}
 var
    d1, d4, xx, nCount, fator, resto, digito1, digito2: Integer;
    Check: string;
@@ -285,7 +285,7 @@ begin
 end;
 
 function CalculoCpf(xCPF: string): Boolean;
-{Testa se o CPF é válido ou não}
+{Testa se o CPF ï¿½ vï¿½lido ou nï¿½o}
 var
    d1, d4, xx, nCount, resto, digito1, digito2: Integer;
    Check: string;
@@ -405,7 +405,7 @@ Begin
   begin
     if not (CalculoCpf(Lc_Doc)) then
     begin
-      Result := 'Número de C.P.F. Inválido.';
+      Result := 'Nï¿½mero de C.P.F. Invï¿½lido.';
       exit;
     end;
   end
@@ -413,7 +413,7 @@ Begin
   begin
     if not (CalculoCnpj(Lc_Doc)) then
     begin
-      Result := 'Número de C.N.P.J. Inválido.';
+      Result := 'Nï¿½mero de C.N.P.J. Invï¿½lido.';
       exit;
     end;
   end;

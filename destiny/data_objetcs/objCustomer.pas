@@ -15,7 +15,7 @@ Type
 
   public
       constructor Create;
-      destructor Destroy;
+      destructor Destroy;reintroduce;
       procedure clear;
       property Cliente : TCustomer read Fcustomer write setFcustomer;
       property Fiscal : TObjEntityFiscal read Ffiscal write setFfiscal;

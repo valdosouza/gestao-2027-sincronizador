@@ -43,6 +43,7 @@ uses Un_Regra_Negocio,Un_sistema;
 
 function TControllerFormaPagamento.autocreate(Descricao: String): boolean;
 begin
+  Result := True;
   Registro.codigo := 0;
   Registro.Descricao := Descricao;
   getByDescricao;
@@ -111,6 +112,7 @@ end;
 
 function TControllerFormaPagamento.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -153,8 +155,8 @@ function TControllerFormaPagamento.ValidaLimiteFormaPagamento(
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -174,10 +176,9 @@ end;
 procedure TControllerFormaPagamento.getByDescricao;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TFormaPagamento;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -187,7 +188,7 @@ begin
               'FROM TB_FORMAPAGTO ',
               ' WHERE fPT_DESCRICAO =:FPT_DESCRICAO '
               ));
-      //17-04-2019 - Alterado Valdo/Thiago - getbydescrição deve ser pelo texto exato
+      //17-04-2019 - Alterado Valdo/Thiago - getbydescriï¿½ï¿½o deve ser pelo texto exato
       //14/07/2020 - para pegar por parte do nome usar o getByPartDescription;
       ParamByName('FPT_DESCRICAO').AsString:= Registro.Descricao;
       Active := True;
@@ -220,10 +221,9 @@ end;
 procedure TControllerFormaPagamento.getByPartDescription;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TFormaPagamento;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -250,8 +250,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TFormaPagamento;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -279,8 +279,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TFormaPagamento;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

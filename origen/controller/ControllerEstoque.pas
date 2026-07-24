@@ -14,8 +14,6 @@ Type
 
   private
     FTerminal: Integer;
-    function Auditoria(Fc_Cd_Produto, Fc_Cd_Estoque: Integer;
-      Fc_DataFinal: TDate): Boolean;
     procedure setFTerminal(const Value: Integer);
 
   public
@@ -46,12 +44,6 @@ Type
 implementation
 
 uses UN_Sistema, Un_Regra_Negocio;
-
-function TControllerEstoque.Auditoria(Fc_Cd_Produto, Fc_Cd_Estoque: Integer;
-  Fc_DataFinal: TDate): Boolean;
-begin
-
-end;
 
 procedure TControllerEstoque.Clear;
 begin
@@ -108,10 +100,10 @@ end;
 function TControllerEstoque.updateBalance: boolean;
 var
   Lc_Qry : TIBQuery;
-  item : TEstoques;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -137,7 +129,7 @@ Var
   Lc_QtdeZerar : Real;
   Lc_Sentido : String;
 begin
-
+  Result := True;
   if ( Self.registro.QtdeDisp <> 0) then
   Begin
     if ( Self.registro.QtdeDisp > 0) then
@@ -211,8 +203,8 @@ Function TControllerEstoque.getIdByEstoqueProduto:Integer;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -241,8 +233,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TEstoque;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -283,8 +275,8 @@ var
   Lc_Qry : TIBQuery;
   item : TEstoques;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -326,6 +318,7 @@ end;
 
 function TControllerEstoque.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -346,8 +339,9 @@ function TControllerEstoque.getByCodigo: Boolean;
 VAr
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;

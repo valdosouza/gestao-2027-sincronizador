@@ -52,7 +52,6 @@ end;
 function Fc_BuscaCodigoCidade(fc_IBGE:Integer; Fc_Descricao,Fc_UF:String): Integer;
 Var
   Lc_Qry : TIBQuery;
-  Lc_SqlTxt : String;
 begin
   Lc_Qry := TIBQuery.Create(nil);
   with Lc_Qry do
@@ -72,8 +71,8 @@ begin
       SQL.Add('select CDD_CODIGO '+
               'FROM TB_CIDADE '+
               'WHERE CDD_DESCRICAO=:CDD_DESCRICAO AND CDD_UF =:CDD_UF');
-      ParamByName('CDD_DESCRICAO').AsAnsiString := Fc_Descricao;
-      ParamByName('CDD_UF').AsAnsiString := Fc_UF;
+      ParamByName('CDD_DESCRICAO').AsAnsiString := AnsiString(Fc_Descricao);
+      ParamByName('CDD_UF').AsAnsiString := AnsiString(Fc_UF);
       end;
     Active := True;
     FetchAll;
@@ -95,9 +94,9 @@ var
        jPar: TJSONPair;
    begin
         result := '';
-        for i := 0 to jObj.Size - 1 do
+        for i := 0 to jObj.Count - 1 do
         begin
-             jPar := jObj.Get(i);
+             jPar := jObj.Pairs[i];
              if jPar.JsonValue Is TJSONObject then
                 result := TrataObjeto((jPar.JsonValue As TJSONObject)) else
              if sametext(trim(jPar.JsonString.Value),value) then
@@ -110,8 +109,8 @@ var
         end;
    end;
 begin
+   LJSONObject := nil;
    try
-      LJSONObject := nil;
       LJSONObject := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(json),0) as TJSONObject;
       result := TrataObjeto(LJSONObject);
    finally
@@ -123,7 +122,6 @@ function Verifica_Rede(porta:Word;ip:String): boolean;
 Var
   LcIdTCPClient : TIdTCPClient;
 begin
-  result:=false;
   try
     LcIdTCPClient := TIdTCPClient.Create(nil);
     LcIdTCPClient.ReadTimeout:=2000;

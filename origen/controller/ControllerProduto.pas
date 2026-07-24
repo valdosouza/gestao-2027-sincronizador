@@ -22,7 +22,7 @@ Type
     procedure setFCodigo(const Value: Integer);
     procedure setFDescricao(const Value: String);
     procedure setFMedida(const Value: String);
-  published
+  public
     property Codigo : Integer read FCodigo write setFCodigo;
     property Descricao : String read FDescricao write setFDescricao;
     property Medida: String read FMedida write setFMedida;
@@ -93,8 +93,8 @@ procedure TControllerProduto.Ativa;
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -115,9 +115,9 @@ procedure TControllerProduto.AtualizaCategoria;
 Var
   Lc_Qry : TIbQuery;
 begin
+  //Tanto faz o objeto e somente para usar a fun�ao do Generator
+  Lc_Qry := GeraQuery();
   Try
-    //Tanto faz o objeto e somente para usar a fun�ao do Generator
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.add(concat('UPDATE TB_PRODUTO SET ',
@@ -138,8 +138,8 @@ procedure TControllerProduto.AtualizaCusto;
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       Active := False;
@@ -168,8 +168,8 @@ procedure TControllerProduto.AtualizaSeries(Operacao,Disponivel: String;ItemID:I
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       Active := False;
@@ -226,8 +226,8 @@ procedure TControllerProduto.AtualizaUltimoCusto;
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       Active := False;
@@ -288,8 +288,9 @@ function TControllerProduto.deleteaLL: boolean;
 Var
   Lc_Qry : TibQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add('DELETE FROM TB_PRODUTO ');
@@ -304,8 +305,8 @@ procedure TControllerProduto.DesativarTodos(pCodMha: Integer);
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -343,15 +344,6 @@ end;
 
 procedure TControllerProduto.FillDataObjects(prod: TProduto;
   ObjMer: TObjMerchandise; institutioWebId: Integer);
-var
-  I,J : Integer;
-  LcOriListaEstoque : TControllerEstoques;
-  LcOriListaPreco : TControllerTabelaPreco;
-  LcDestPrice : TPrice;
-  LcObjEstoque : TObjStockList;
-  LcObjPreco : TObjPriceList;
-  LcCtrlGrupo : TControllerGrupos;
-  LcIdCategory : Integer;
 begin
   Try
     clearObj(ObjMer);
@@ -448,9 +440,6 @@ begin
 end;
 
 procedure TControllerProduto.ListarMovimentoComEstoque;
-var
-  Lc_Qry : TIBQuery;
-  LcLista : TProduto;
 begin
 
 
@@ -460,8 +449,8 @@ procedure TControllerProduto.MarcaPromocao(Codigo: Integer;Ativa:Boolean);
 Var
   Lc_Qry : TibQuery;
 begin
+  Lc_Qry := GeraQuery();
   Try
-    Lc_Qry := GeraQuery();
     with Lc_Qry do
     Begin
       sql.Add('UPDATE TB_PRODUTO SET '+
@@ -486,6 +475,7 @@ end;
 
 function TControllerProduto.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -495,8 +485,8 @@ Var
   Lc_Upt : TIBQuery;
   Lc_Contatdor : Integer;
 begin
+  Lc_Upt := GeraQuery;
   Try
-    Lc_Upt := GeraQuery;
     with Lc_Upt do
     Begin
       sql.Clear;
@@ -554,6 +544,7 @@ end;
 
 function TControllerProduto.save: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_PRODUTO');
 
@@ -565,6 +556,7 @@ end;
 
 function TControllerProduto.saveDatawebObjeto(DObj: TObjMerchandise): Boolean;
 begin
+  Result := True;
   with registro do
   Begin
     Codigo                := DObj.Produto.Codigo;
@@ -624,8 +616,8 @@ function TControllerProduto.temmovimento: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -660,9 +652,9 @@ function TControllerProduto.getbyBarCode: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -695,8 +687,8 @@ Function TControllerProduto.getByDescricao(descricao: String):Integer;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -730,10 +722,10 @@ Var
   Lc_Qry : TIBQuery;
   Lc_item : TProdutoPizza;
 Begin
+  Lc_item := TProdutoPizza.create;
+  Lc_item.codigo := 0;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_item := TProdutoPizza.create;
-    Lc_item.codigo := 0;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -769,8 +761,9 @@ function TControllerProduto.getbyFactoryProduct:Boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -798,8 +791,8 @@ function TControllerProduto.getCusto: Real;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -820,8 +813,8 @@ function TControllerProduto.getDescricao: String;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -846,10 +839,9 @@ end;
 function TControllerProduto.getField(codigo: Integer; Field: String): String;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TProduto;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -873,8 +865,9 @@ Var
   Lc_SqlTxt : String;
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Lc_SqlTxt := 'SELECT DISTINCT pr.* '+
@@ -885,9 +878,9 @@ begin
                    'OR ((pr.PRO_CODIGOBAR=:PRO_CODIGOBAR) AND (pr.PRO_CODIGOBAR<> '''') AND (pr.PRO_CODIGOBAR IS NOT NULL))  '+
                    'AND (pr.PRO_ATIVO = ''S'') ';
       SQL.Add(Lc_SqlTxt);
-      ParamByName('PFR_CODFOR').AsAnsiString := Fc_Cd_Fornecedor;
-      ParamByName('PFR_PRODUTO').AsAnsiString := Fc_cd_Produto;
-      ParamByName('PRO_CODIGOBAR').AsAnsiString := Fc_Cd_Barras;
+      ParamByName('PFR_CODFOR').AsAnsiString := AnsiString(Fc_Cd_Fornecedor);
+      ParamByName('PFR_PRODUTO').AsAnsiString := AnsiString(Fc_cd_Produto);
+      ParamByName('PRO_CODIGOBAR').AsAnsiString := AnsiString(Fc_Cd_Barras);
       Active := True;
       FetchAll;
       exist := (recordCount > 0);
@@ -904,8 +897,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TProduto;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -967,8 +960,8 @@ function TControllerProduto.getPeso: Real;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -991,8 +984,9 @@ Var
 Begin
   //Na ultima analise 12/12/2020 - Precisa enviar os todos os produtos  - O menu far� o vinculo depois
   //N�o deve ser utilizado por enquanto
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -1017,8 +1011,8 @@ Var
 Begin
   //Na ultima analise 12/12/2020 - Precisa enviar os todos os produtos  - O menu far� o vinculo depois
   //N�o deve ser utilizado por enquanto
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -1043,8 +1037,8 @@ function TControllerProduto.getValorBaseTroca: Real;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(

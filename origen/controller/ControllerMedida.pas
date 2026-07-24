@@ -44,8 +44,8 @@ procedure TControllerMedida.AlteraMedidaEspecial(NEW_MED,OLD_MED:String);
 Var
   Lc_Qry :TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -68,8 +68,8 @@ procedure TControllerMedida.AtivarDesativar;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -97,8 +97,8 @@ procedure TControllerMedida.AtivarDesativarProdutos(medidaId: Integer;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -184,6 +184,7 @@ end;
 
 function TControllerMedida.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -199,6 +200,7 @@ end;
 
 function TControllerMedida.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_MEDIDA');
   SaveObj(Registro);
@@ -223,12 +225,12 @@ procedure TControllerMedida.getbyDescricao;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
-      {Cuidado ao mexer nesta funçao, se colocar o get aqui dentro vai ter problema
-      na alteração dos sabores - se precisar deste dos para validar coloque o get fora }
+      {Cuidado ao mexer nesta funï¿½ao, se colocar o get aqui dentro vai ter problema
+      na alteraï¿½ï¿½o dos sabores - se precisar deste dos para validar coloque o get fora }
       exist := False;
       active := False;
       sql.Clear;
@@ -252,12 +254,12 @@ procedure TControllerMedida.getbyDescricaoMedidaCardapio;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
-    {Cuidado ao mexer nesta funçao, se colocar o get aqui dentro vai ter problema
-      na alteração dos sabores - se precisar deste dos para validar coloque o get fora }
+    {Cuidado ao mexer nesta funï¿½ao, se colocar o get aqui dentro vai ter problema
+      na alteraï¿½ï¿½o dos sabores - se precisar deste dos para validar coloque o get fora }
       exist := False;
       active := False;
       sql.Clear;
@@ -283,8 +285,8 @@ procedure TControllerMedida.getbyMedidaEspecial;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -329,8 +331,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TMedida;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -363,8 +366,8 @@ procedure TControllerMedida.getoSincronia;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;

@@ -57,7 +57,7 @@ end;
 
 procedure TControllerDskPromotion.FillDataObjetO(Promo: TDskPromotion; Obj: TObjPromotion);
 var
-  I,J : Integer;
+  I : Integer;
   LcItem : TPromotionItems;
 begin
   With Obj do
@@ -85,6 +85,7 @@ end;
 
 function TControllerDskPromotion.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_PROMOTION');
   SaveObj(Registro);
@@ -95,8 +96,8 @@ function TControllerDskPromotion.tempromocao: Boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -166,8 +167,8 @@ procedure TControllerDskPromotion.getById;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -195,8 +196,8 @@ procedure TControllerDskPromotion.getbyProduct(product,institutionID:Integer);
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -229,8 +230,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TDskPromotion;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

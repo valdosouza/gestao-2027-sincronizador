@@ -13,7 +13,7 @@ Type
   TControllerItensPIS = Class(TControllerBase)
 
   private
-    function nextCodigo:Integer;
+
   public
     Registro : TItensPIS;
     Lista: TListaItemPIS;
@@ -33,6 +33,7 @@ uses Un_Regra_Negocio;
 
 function TControllerItensPIS.atualiza: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -55,8 +56,8 @@ procedure TControllerItensPIS.getByItemNota;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -78,8 +79,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TItensPIS;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -118,30 +119,11 @@ begin
   end;
 end;
 
-function TControllerItensPIS.nextCodigo: Integer;
-var
-  Lc_Qry: TIBQuery;
-begin
-  Try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      SQL.Clear;
-      SQL.Add('SELECT MAX(PIS_CODIGO) FROM TB_ITENS_PIS ' );
-      Active := True;
-      fetchall;
-      if recordcount > 0 then
-        Result := FieldByName('MAX').AsInteger + 1
-      else
-        Result := 1;
-    End;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-end;
+
 
 function TControllerItensPIS.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

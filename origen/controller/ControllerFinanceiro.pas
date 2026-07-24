@@ -55,8 +55,8 @@ procedure TControllerFinanceiro.AlteraVencimentoValor;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('UPDATE TB_FINANCEIRO SET '+
@@ -87,8 +87,9 @@ function TControllerFinanceiro.AtualizaEmpresaFinanceiro: Boolean;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := geraQuery;
   Try
-    Lc_Qry := geraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -113,8 +114,10 @@ Var
   Lc_Qt_Parcelas: Integer;
   Lc_Fin_Numero: String;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
+  Lc_Upt := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     Lc_Qry.sql.Clear;
     Lc_Qry.sql.Add(concat(
                     'SELECT FIN_CODIGO,FIN_NR_PARCELA,PED_NUMERO,NFL_NUMERO ',
@@ -128,7 +131,6 @@ Begin
     Lc_Qry.ParamByName('NFL_CODIGO').AsInteger := REgistro.CodigoNota;
 
     // Cria o update
-    Lc_Upt := GeraQuery;
     Lc_Upt.sql.Clear;
     Lc_Upt.sql.Add(concat(
                    'UPDATE TB_FINANCEIRO SET ' +
@@ -176,8 +178,8 @@ procedure TControllerFinanceiro.Autorizacao;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -200,8 +202,9 @@ function TControllerFinanceiro.cancelaBaixa: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -226,8 +229,9 @@ function TControllerFinanceiro.cancelaBaixaByQuitacao: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -274,7 +278,6 @@ function TControllerFinanceiro.delete: boolean;
 begin
   try
     deleteObj(Registro);
-    Result := True;
   finally
     Result := False;
   end;
@@ -284,8 +287,9 @@ function TControllerFinanceiro.deleteByNota: boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -304,8 +308,9 @@ function TControllerFinanceiro.deleteFinanceiroErro: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -324,8 +329,9 @@ function TControllerFinanceiro.Destinar: boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('UPDATE TB_FINANCEIRO SET '+
@@ -413,8 +419,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -480,8 +486,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TFinanceiro;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -513,6 +519,7 @@ end;
 
 function TControllerFinanceiro.insere: boolean;
 begin
+  Result := True;
   if Registro.codigo = 0 then
     Registro.codigo := Generator('GN_FINANCEIRO');
   InsertObj(Registro);
@@ -520,11 +527,13 @@ end;
 
 function TControllerFinanceiro.migra: Boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 
 function TControllerFinanceiro.salva: boolean;
 begin
+  Result := True;
   if Registro.codigo = 0 then
     Registro.codigo := Generator('GN_FINANCEIRO');
   SaveObj(Registro);
@@ -534,8 +543,8 @@ function TControllerFinanceiro.ValorTotalNota: Real;
 Var
   Lc_Qry : TIbQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Clear;
@@ -559,8 +568,8 @@ function TControllerFinanceiro.verificaBaixadobyNota: Boolean;
 Var
   Lc_Qry : TIbQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Clear;

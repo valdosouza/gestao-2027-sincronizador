@@ -2,6 +2,8 @@ unit tas_config;
 
 interface
 
+{$WARN UNIT_PLATFORM OFF}
+
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs,   StdCtrls, Spin, ComCtrls, ExtCtrls, DB, ADODB, IniFiles,
@@ -91,7 +93,6 @@ type
     procedure SaveConfig;
     procedure ShowConfig;
 
-    function ValidaTransferencia:Boolean;
     //Lista de Tabelas
     procedure preencheListaTabelas(Lista:TCheckListBox);
     procedure ShowExcecoes;
@@ -203,8 +204,8 @@ Var
   LcCtrl : TControllerArquivo;
   I : Integer;
 begin
+  LcCtrl := TControllerArquivo.Create(nil);
   try
-    LcCtrl := TControllerArquivo.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -233,8 +234,8 @@ Var
   LcCtrl : TcontrollerCartaCorrecao;
   I : Integer;
 begin
+  LcCtrl := TcontrollerCartaCorrecao.Create(nil);
   try
-    LcCtrl := TcontrollerCartaCorrecao.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -247,7 +248,7 @@ begin
     GG_Web_Process.Update;
     for I := 0 to LcCtrl.Lista.Count -1 do
     Begin
-      Lb_Web_Process.Caption := concat('Processando Cartao Correção: ',IntToStr(I));
+      Lb_Web_Process.Caption := concat('Processando Cartao Correï¿½ï¿½o: ',IntToStr(I));
       GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
       GG_Web_Process.Update;
       LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
@@ -263,8 +264,8 @@ Var
   LcCtrl : TControllerDskCashier;
   I : Integer;
 begin
+  LcCtrl := TControllerDskCashier.Create(nil);
   try
-    LcCtrl := TControllerDskCashier.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -289,8 +290,8 @@ Var
   LcCtrl : TControllerDskCategory;
   I : Integer;
 begin
+  LcCtrl := TControllerDskCategory.Create(nil);
   try
-    LcCtrl := TControllerDskCategory.Create(nil);
 
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -316,8 +317,8 @@ Var
   LcCtrl : TControllerCliente;
   I : Integer;
 begin
+  LcCtrl := TControllerCliente.Create(nil);
   try
-    LcCtrl := TControllerCliente.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -343,8 +344,8 @@ Var
   LcCtrl : TControllerColaborador;
   I : Integer;
 begin
+  LcCtrl := TControllerColaborador.Create(nil);
   try
-    LcCtrl := TControllerColaborador.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -371,8 +372,8 @@ Var
   LcCtrl : TControllerContaBancaria;
   I : Integer;
 begin
+  LcCtrl := TControllerContaBancaria.Create(nil);
   try
-    LcCtrl := TControllerContaBancaria.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -397,8 +398,8 @@ Var
   LcCtrl : TControllerDskCashier;
   I : Integer;
 begin
+  LcCtrl := TControllerDskCashier.Create(nil);
   try
-    LcCtrl := TControllerDskCashier.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -427,8 +428,8 @@ Var
   LcCtrl : TControllerEmbalagem;
   I : Integer;
 begin
+  LcCtrl := TControllerEmbalagem.Create(nil);
   try
-    LcCtrl := TControllerEmbalagem.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -452,8 +453,8 @@ Var
   LcCtrl : TControllerEstoque;
   I : Integer;
 begin
+  LcCtrl := TControllerEstoque.Create(nil);
   try
-    LcCtrl := TControllerEstoque.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -477,8 +478,8 @@ Var
   LcCtrl : TControllerEstoques;
   I : Integer;
 begin
+  LcCtrl := TControllerEstoques.Create(nil);
   try
-    LcCtrl := TControllerEstoques.Create(nil);
     LcCtrl.Registro.Estabelecimento := StrToIntDef(E_institution_origem.Text,0);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -505,8 +506,8 @@ Var
   LcCtrl : TControllerFinanceiro;
   I : Integer;
 begin
+  LcCtrl := TControllerFinanceiro.Create(nil);
   try
-    LcCtrl := TControllerFinanceiro.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -536,8 +537,8 @@ Var
   LcCtrl : TControllerFormaPagamento;
   I : Integer;
 begin
+  LcCtrl := TControllerFormaPagamento.Create(nil);
   try
-    LcCtrl := TControllerFormaPagamento.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -561,8 +562,8 @@ Var
   LcCtrl : TControllerFornecedor;
   I : Integer;
 begin
+  LcCtrl :=TControllerFornecedor.Create(nil);
   try
-    LcCtrl :=TControllerFornecedor.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -589,10 +590,11 @@ Var
   LcQry : TIBQuery;
   LcCategory : TControllerDskCategory;
 begin
+  I := 0;
+  LcCategory := TControllerDskCategory.Create(nil);
+  LcProduto := TControllerProduto.create(nil);
+  LcQry := TIBQuery.create(nil);
   Try
-    LcCategory := TControllerDskCategory.Create(nil);
-    LcProduto := TControllerProduto.create(nil);
-    LcQry := TIBQuery.create(nil);
     with LcQry do
     Begin
       Active := False;
@@ -621,8 +623,8 @@ begin
 
         //Verifica se tem a Categoria
 
-        LcCategory.getAutoCreateByGrupo( StrToIntDef( E_institution_origem.Text,1), FieldByName('GRP_DESCRICAO').AsAnsiString);
-        LcCategory.getAutoCreateBySubGrupo( StrToIntDef( E_institution_origem.Text,1),LcCategory.Registro.NivelPosicao , FieldByName('SBG_DESCRICAO').AsAnsiString);
+        LcCategory.getAutoCreateByGrupo( StrToIntDef( E_institution_origem.Text,1), String(FieldByName('GRP_DESCRICAO').AsAnsiString));
+        LcCategory.getAutoCreateBySubGrupo( StrToIntDef( E_institution_origem.Text,1),LcCategory.Registro.NivelPosicao , String(FieldByName('SBG_DESCRICAO').AsAnsiString));
 
         LcProduto.Registro.Codigo := FieldByName('PRO_CODIGO').AsInteger;
         LcProduto.Registro.Categoria := LcCategory.Registro.Codigo;
@@ -645,8 +647,8 @@ Var
   LcCtrl : TControllerHistoricoBancario;
   I : Integer;
 begin
+  LcCtrl := TControllerHistoricoBancario.Create(nil);
   try
-    LcCtrl := TControllerHistoricoBancario.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -672,8 +674,8 @@ Var
   LcCtrl : TControllerMarcaProduto;
   I : Integer;
 begin
+  LcCtrl := TControllerMarcaProduto.Create(nil);
   try
-    LcCtrl := TControllerMarcaProduto.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -697,8 +699,8 @@ Var
   LcCtrl : TControllerMedida;
   I : Integer;
 begin
+  LcCtrl := TControllerMedida.Create(nil);
   try
-    LcCtrl := TControllerMedida.Create(nil);
     LcCtrl.Registro.MedidaCardapio := '';  //
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -728,8 +730,8 @@ Var
   LcCtrl : TControllerMovimentoFinanceiro;
   I : Integer;
 begin
+  LcCtrl := TControllerMovimentoFinanceiro.Create(nil);
   try
-    LcCtrl := TControllerMovimentoFinanceiro.Create(nil);
     LcCtrl.Estabel    := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -759,8 +761,8 @@ Var
   LcCtrl : TControllerNotaFiscal;
   I : Integer;
 begin
+  LcCtrl := TControllerNotaFiscal.Create(nil);
   try
-    LcCtrl := TControllerNotaFiscal.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.TipoNota         := 'EM';
@@ -794,8 +796,8 @@ Var
   LcCtrl : TControllerNotaFiscal;
   I : Integer;
 begin
+  LcCtrl := TControllerNotaFiscal.Create(nil);
   try
-    LcCtrl := TControllerNotaFiscal.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.TipoNota         := '';
@@ -834,8 +836,8 @@ Var
   LcCtrl : TControllerPedido;
   I : Integer;
 begin
+  LcCtrl := TControllerPedido.Create(nil);
   try
-    LcCtrl := TControllerPedido.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.Registro.Tipo    := 3;
@@ -866,8 +868,8 @@ Var
   LcCtrl : TControllerPedido;
   I : Integer;
 begin
+  LcCtrl := TControllerPedido.Create(nil);
   try
-    LcCtrl := TControllerPedido.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.Registro.Tipo    := 2;
@@ -896,8 +898,8 @@ Var
   LcCtrl : TControllerPedido;
   I : Integer;
 begin
+  LcCtrl := TControllerPedido.Create(nil);
   try
-    LcCtrl := TControllerPedido.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.Registro.Tipo    := 1;
@@ -933,8 +935,8 @@ Var
   LcCtrl : TControllerPreco;
   I : Integer;
 begin
+  LcCtrl := TControllerPreco.Create(nil);
   try
-    LcCtrl := TControllerPreco.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -942,7 +944,7 @@ begin
     GG_Web_Process.Update;
     for I := 0 to LcCtrl.Lista.Count -1 do
     Begin
-      Lb_Web_Process.Caption := concat('Processando Preços ',IntToStr(I));
+      Lb_Web_Process.Caption := concat('Processando Preï¿½os ',IntToStr(I));
       GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
       GG_Web_Process.Update;
       LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
@@ -965,8 +967,8 @@ Var
   LcCtrl : TControllerProduto;
   I : Integer;
 begin
+  LcCtrl := TControllerProduto.Create(nil);
   try
-    LcCtrl := TControllerProduto.Create(nil);
     LcCtrl.Registro.Tipo := 'P';
     LcCtrl.getList('0');
     GG_Web_Process.MinValue := 0;
@@ -991,8 +993,8 @@ Var
   LcCtrl : TControllerDskPromotion;
   I : Integer;
 begin
+  LcCtrl := TControllerDskPromotion.Create(nil);
   try
-    LcCtrl := TControllerDskPromotion.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -1016,8 +1018,8 @@ Var
   LcCtrl : TControllerGrupos;
   I : Integer;
 begin
+  LcCtrl := TControllerGrupos.Create(nil);
   try
-    LcCtrl := TControllerGrupos.Create(nil);
     LcCtrl.Registro.Composicao := 'S';//s apenas para o preenchimento
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -1043,8 +1045,8 @@ Var
   LcCtrl : TControllerMedida;
   I : Integer;
 begin
+  LcCtrl := TControllerMedida.Create(nil);
   try
-    LcCtrl := TControllerMedida.Create(nil);
     LcCtrl.Registro.MedidaCardapio := 'S';  //S apenas para o preenchimento
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -1069,8 +1071,8 @@ Var
   LcCtrl : TControllerCrpItens;
   I : Integer;
 begin
+  LcCtrl := TControllerCrpItens.Create(nil);
   try
-    LcCtrl := TControllerCrpItens.Create(nil);
     LcCtrl.Registro.Tipo := 'O';
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -1095,8 +1097,8 @@ Var
   LcCtrl : TControllerProduto;
   I : Integer;
 begin
+  LcCtrl := TControllerProduto.Create(nil);
   try
-    LcCtrl := TControllerProduto.Create(nil);
     LcCtrl.Registro.Tipo := 'A';
     LcCtrl.getList('0');
     GG_Web_Process.MinValue := 0;
@@ -1105,7 +1107,7 @@ begin
     GG_Web_Process.Update;
     for I := 0 to LcCtrl.Lista.Count -1 do
     Begin
-      Lb_Web_Process.Caption := concat('Processando Menu do Cardápio: ',IntToStr(I));
+      Lb_Web_Process.Caption := concat('Processando Menu do Cardï¿½pio: ',IntToStr(I));
       GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
       GG_Web_Process.Update;
       LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
@@ -1121,8 +1123,8 @@ Var
   LcCtrl : TControllerCrpItens;
   I : Integer;
 begin
+  LcCtrl := TControllerCrpItens.Create(nil);
   try
-    LcCtrl := TControllerCrpItens.Create(nil);
     LcCtrl.Registro.Tipo := 'P';
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -1131,7 +1133,7 @@ begin
     GG_Web_Process.Update;
     for I := 0 to LcCtrl.Lista.Count -1 do
     Begin
-      Lb_Web_Process.Caption := concat('Processando Ingredientes do Menu do Cardápio: ',IntToStr(I));
+      Lb_Web_Process.Caption := concat('Processando Ingredientes do Menu do Cardï¿½pio: ',IntToStr(I));
       GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
       GG_Web_Process.Update;
       LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
@@ -1147,8 +1149,8 @@ Var
   LcCtrl : TControllerSubGrupos;
   I : Integer;
 begin
+  LcCtrl := TControllerSubGrupos.Create(nil);
   try
-    LcCtrl := TControllerSubGrupos.Create(nil);
     LcCtrl.Registro.Abas := 'S';//s apenas para o preenchimento
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
@@ -1174,8 +1176,8 @@ Var
   LcCtrl : TControllerREtornoNFCe;
   I : Integer;
 begin
+  LcCtrl := TControllerREtornoNFCe.Create(nil);
   try
-    LcCtrl := TControllerREtornoNFCe.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -1204,8 +1206,8 @@ Var
   LcCtrl : TControllerREtornoNfe;
   I : Integer;
 begin
+  LcCtrl := TControllerREtornoNfe.Create(nil);
   try
-    LcCtrl := TControllerREtornoNfe.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -1234,8 +1236,8 @@ Var
   LcCtrl : TControllerREtornoNFS;
   I : Integer;
 begin
+  LcCtrl := TControllerRetornoNFS.Create(nil);
   try
-    LcCtrl := TControllerRetornoNFS.Create(nil);
     LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -1265,8 +1267,8 @@ Var
   LcCtrl : TControllerTabelaPreco;
   I : Integer;
 begin
+  LcCtrl := TControllerTabelaPreco.Create(nil);
   try
-    LcCtrl := TControllerTabelaPreco.Create(nil);
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -1274,7 +1276,7 @@ begin
     GG_Web_Process.Update;
     for I := 0 to LcCtrl.Lista.Count -1 do
     Begin
-      Lb_Web_Process.Caption := concat('Processando Tabela de Preços ',IntToStr(I));
+      Lb_Web_Process.Caption := concat('Processando Tabela de Preï¿½os ',IntToStr(I));
       GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
       GG_Web_Process.Update;
       LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
@@ -1322,7 +1324,7 @@ begin
   lista.Items.Add('FORNECEDOR');
   lista.Items.Add('CATEGORIAS');
   lista.Items.Add('IMAGEM DE PRODUTOS');
-  lista.Items.Add('PROMOÇÃO');
+  lista.Items.Add('PROMOï¿½ï¿½O');
   lista.Items.Add('PLANOCONTAS');
   lista.Items.Add('PEDIDO COMPRA');
   lista.Items.Add('PEDIDO VENDA');
@@ -1336,9 +1338,9 @@ begin
   lista.Items.Add('RETORNO NF-E');
   lista.Items.Add('RETORNO NFC-E');
   lista.Items.Add('RETORNO NFS-E');
-  lista.Items.Add('CARTA DE CORREÇÃO');
+  lista.Items.Add('CARTA DE CORREï¿½ï¿½O');
   lista.Items.Add('ARQUIVOS');
-  lista.Items.Add('CONSIGNAÇÃO');
+  lista.Items.Add('CONSIGNAï¿½ï¿½O');
   lista.Items.Add('MENU CARDAPIO');
   lista.Items.Add('INGREDIENTES MENU');
   lista.Items.Add('GRUPO RESTAURANTE');
@@ -1549,8 +1551,8 @@ begin
   BEgin
     ShowMessage(concat(
                   'O Intervalo deve ser maior do que 1 minuto.',#13,
-                  'Caso não deseje usar o temporizador preencha com 0(zero)',#13,
-                  'Impossível continuar. '
+                  'Caso nï¿½o deseje usar o temporizador preencha com 0(zero)',#13,
+                  'Impossï¿½vel continuar. '
                   ));
     Result := FAlse;
     exit;
@@ -1558,31 +1560,7 @@ begin
   if not VerificaConectaBanco(True,E_Path_BD_Local.Text) then
   Begin
     ShowMessage(concat(
-                  'O Banco de dados local não está disponivel.',#13,
-                  'Verifique antes de continuar. '
-                  ));
-    Result := False;
-    exit;
-  End;
-
-end;
-
-function TTasConfig.ValidaTransferencia: Boolean;
-begin
-  REsult := True;
-  if not VerificaConectaBanco(True,Fc_Aq_Geral('L','SISWEB', 'BDPathBDLocal','')) then
-  Begin
-    ShowMessage(concat(
-                  'O Servidor para receber os dados não está disponivel.',#13,
-                  'Verifique antes de continuar. '
-                  ));
-    Result := False;
-    exit;
-  End;
-  if not ConectaBancoServidor(True) then
-  Begin
-    ShowMessage(concat(
-                  'O Servidor para enviar os dados não está disponivel.',#13,
+                  'O Banco de dados local nï¿½o estï¿½ disponivel.',#13,
                   'Verifique antes de continuar. '
                   ));
     Result := False;

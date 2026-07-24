@@ -84,7 +84,6 @@ uses customer_send_web;
 
 procedure TGeneralWeb.configComponents;
 Var
-  LcContentType  : TRESTContentType;
   LcUrl          : String;
 
 begin
@@ -156,7 +155,6 @@ Var
   LcOk      : Boolean;
   LcError   : String;
   LcId      : Integer;
-  LcExtCode : String;
 begin
   FExternalCode := '';
   FRetorno.Clear;

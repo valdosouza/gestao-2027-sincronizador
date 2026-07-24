@@ -8,7 +8,6 @@ Type
   [TableName('tb_stock_statement')]
   TStockStatement = Class(TGenericEntity)
   private
-    Ftb_stock_reserved_id: Integer;
     Ftb_order_id: Integer;
     Flocal: String;
     Fkind: String;

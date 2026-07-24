@@ -15,7 +15,6 @@ type
 
       procedure setFDatabase               (const Value: TIBDatabase);
       procedure setFListbox                (const Value: TListBox);
-      procedure setFFInstiturionDestino    (const Value: Integer);
       procedure setFDevice                 (const Value: Integer);
       procedure setFCNPJ                   (const Value: String);
       procedure setFURL                    (const Value: String);
@@ -126,10 +125,6 @@ exit;
 end;
 
 procedure TBaseSetes.getListSincronia(pTabela,pTipo: String;pSentido:String);
-Var
-  LcTime : TDatetime;
-  I:Integer;
-  LcSincronia : TSincronia;
 begin
   FSincronia.Tipo := pTipo;
   FSincronia.Registro.Tabela := pTabela;
@@ -160,12 +155,6 @@ end;
 procedure TBaseSetes.setFDevice(const Value: Integer);
 begin
   FDevice := Value;
-end;
-
-
-procedure TBaseSetes.setFFInstiturionDestino(const Value: Integer);
-begin
-  FInstitutionDestino := Value;
 end;
 
 

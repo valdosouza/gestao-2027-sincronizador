@@ -59,8 +59,9 @@ function TControllerDskPromotionItems.deleteByPromotion: boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat('delete ',
@@ -97,8 +98,8 @@ procedure TControllerDskPromotionItems.getbyProduct;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -126,8 +127,8 @@ Var
   Lc_Qry : TIBQuery;
   LITem : TDskPromotionItems;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -158,8 +159,8 @@ procedure TControllerDskPromotionItems.getProductDuplicated;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -190,7 +191,6 @@ function TControllerDskPromotionItems.Insert: boolean;
 begin
   Try
     InsertObj(Registro);
-    REsult := True;
   Finally
     REsult := False;
   End;
@@ -200,7 +200,6 @@ function TControllerDskPromotionItems.replace: boolean;
 begin
   Try
     replaceObj(Registro);
-    REsult := True;
   Finally
     REsult := False;
   End;
@@ -209,11 +208,13 @@ end;
 
 function TControllerDskPromotionItems.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
 function TControllerDskPromotionItems.update: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 

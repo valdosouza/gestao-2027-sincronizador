@@ -48,7 +48,7 @@ end;
 
 function TControllerHistoricoBancario.getIdByDescription(value:String):Integer;
 Begin
-
+  Result := 0;
 End;
 
 procedure TControllerHistoricoBancario.getlist;
@@ -56,8 +56,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : THistoricoBancario;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

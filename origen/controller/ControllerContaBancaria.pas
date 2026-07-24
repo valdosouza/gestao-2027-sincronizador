@@ -97,6 +97,7 @@ end;
 
 function TControllerContaBancaria.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -130,8 +131,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TContaBancaria;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -159,8 +160,8 @@ function TControllerContaBancaria.getNumeroBanco: String;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

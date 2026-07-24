@@ -78,6 +78,7 @@ end;
 
 function TControllerMarcaProduto.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -94,6 +95,7 @@ end;
 
 function TControllerMarcaProduto.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := Generator('GN_MARCAPRODUTO');
   SaveObj(Registro);
@@ -114,8 +116,8 @@ procedure TControllerMarcaProduto.getbyDescricao;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -141,7 +143,7 @@ procedure TControllerMarcaProduto.getById;
 begin
   _getByKey(Registro);
   if Trim(Registro.Descricao) = '' then
-    Registro.Descricao := 'Não informada';
+    Registro.Descricao := 'Nï¿½o informada';
 end;
 
 
@@ -150,9 +152,9 @@ Var
   Lc_Qry:TIBQuery;
   LcBase : TControllerBase;
 begin
+  LcBase := TControllerBase.create(nil);
+  Lc_Qry := LcBase.GeraQuery;
   Try
-    LcBase := TControllerBase.create(nil);
-    Lc_Qry := LcBase.GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -182,7 +184,7 @@ begin
   if  not exist then
   Begin
     Registro.Codigo := 0;
-    //'ESSE CAMPO É PRENCHIDO NA ENTRADA E ELE QUE VAI SER PREENCHIDO AUTOMATICAMENTE
+    //'ESSE CAMPO ï¿½ PRENCHIDO NA ENTRADA E ELE QUE VAI SER PREENCHIDO AUTOMATICAMENTE
     //Registro.Descricao := ''
     Registro.Fabrica := 0;
     insert;
@@ -194,8 +196,9 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TMarcaProduto;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

@@ -12,7 +12,6 @@ Type
   TControllerItensCofins = Class(TControllerBase)
 
   private
-    function nextCodigo:Integer;
   public
     Registro : TItensCofins;
     Lista: TListaItemCFS;
@@ -32,6 +31,7 @@ uses Un_Regra_Negocio;
 
 function TControllerItensCofins.atualiza: boolean;
 begin
+  Result := True;
   UpdateObj(Registro);
 end;
 
@@ -54,8 +54,8 @@ procedure TControllerItensCofins.getByItemNota;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -77,8 +77,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TItensCofins;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -110,37 +110,16 @@ function TControllerItensCofins.insere: boolean;
 begin
   try
     Result := TRue;
-    Registro.Codigo :=  Generator('GN_ITENS_CFS'); //nextCodigo;
+    Registro.Codigo :=  Generator('GN_ITENS_CFS');
     InsertObj(Registro);
   Except
     Result := FAlse;
   end;
 end;
 
-function TControllerItensCofins.nextCodigo: Integer;
-var
-  Lc_Qry: TIBQuery;
-begin
-  Try
-    Lc_Qry := GeraQuery;
-    with Lc_Qry do
-    Begin
-      SQL.Clear;
-      SQL.Add('SELECT MAX(CFS_CODIGO) FROM TB_ITENS_CFS ' );
-      Active := True;
-      fetchall;
-      if recordcount > 0 then
-        Result := FieldByName('MAX').AsInteger + 1
-      else
-        Result := 1;
-    End;
-  Finally
-    FinalizaQuery(Lc_Qry);
-  End;
-end;
-
 function TControllerItensCofins.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

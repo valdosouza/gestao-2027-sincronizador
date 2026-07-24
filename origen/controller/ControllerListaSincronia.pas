@@ -98,8 +98,8 @@ begin
   // Sentinela: sem checkpoint ainda -> processa tudo desde essa data (mesmo
   // fallback usado no restante do projeto).
   Result := StrToDateTime('01/01/2016 00:00:00');
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -128,8 +128,8 @@ procedure TControllerListaSincronia.SetLastUpdate(pWay, pTabela, pKind: String; 
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -156,8 +156,8 @@ procedure TControllerListaSincronia.SetLastUpdateAll(pWay: String; pDtUpdate: TD
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -178,8 +178,8 @@ procedure TControllerListaSincronia.SetTriggerName(pWay, pTabela, pKind, pTrigge
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -205,8 +205,8 @@ function TControllerListaSincronia.SincronizaTabela: Boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -231,8 +231,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TListaSincronia;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -264,8 +264,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TListaSincronia;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(

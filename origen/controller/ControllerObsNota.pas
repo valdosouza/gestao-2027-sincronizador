@@ -45,7 +45,7 @@ end;
 
 function TControllerObsNota.delete: boolean;
 begin
-
+  Result := True;
 end;
 
 destructor TControllerObsNota.Destroy;
@@ -65,8 +65,9 @@ var
   Lc_Qry : TIBQuery;
   LITem : TObsNota;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -106,6 +107,7 @@ end;
 
 function TControllerObsNota.migra: Boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 
@@ -124,7 +126,7 @@ end;
 
 function TControllerObsNota.update: boolean;
 begin
-
+  Result := True;
 end;
 
 end.

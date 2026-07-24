@@ -112,10 +112,9 @@ end;
 procedure TControllerRetornoNFCe.getByNotaFiscal;
 var
   Lc_Qry : TIBQuery;
-  LITem : TRetornoNFCe;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -138,8 +137,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TRetornoNFCe;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT NFC.* ',
@@ -182,9 +181,9 @@ function TControllerRetornoNFCe.getNext: Integer;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
     Result := 0;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -210,8 +209,8 @@ procedure TControllerRetornoNFCe.getSincronia;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -251,6 +250,7 @@ end;
 
 function TControllerRetornoNFCe.insere: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
     Registro.Codigo := getNext;
   Registro.Lote   := Registro.Codigo;
@@ -260,6 +260,7 @@ end;
 
 function TControllerRetornoNFCe.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -267,8 +268,9 @@ function TControllerRetornoNFCe.SalvaRetorno: Boolean;
 Var
   Lc_Qry:TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -297,8 +299,9 @@ function TControllerRetornoNFCe.UpdateFileXMl: Boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('UPDATE TB_RETORNO_NFC SET ',
@@ -318,8 +321,8 @@ function TControllerRetornoNFCe.VerificaPendentesNumeradas: boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(

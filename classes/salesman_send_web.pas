@@ -123,8 +123,6 @@ begin
         // descrição, igual ao padrão já usado em ControllerColaborador.FillDataObjeto)
         if (Trim(FCtrl.Registro.Endereco) <> '') or (Trim(FCtrl.Registro.Cep) <> '') then
         Begin
-          LcCodigoEstado := 0;
-          LcCodigoCidade := 0;
           Try
             LcUF := TControllerUf.Create(nil);
             LcCidade := TControllerCidade.Create(nil);

@@ -78,8 +78,8 @@ function TControllerEstoques.IsPrincipal: Boolean;
 VAr
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       exist := False;
@@ -108,6 +108,7 @@ end;
 
 function TControllerEstoques.migra: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -152,10 +153,9 @@ end;
 procedure TControllerEstoques.getbyMain;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TEstoques;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -183,8 +183,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TEstoques;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

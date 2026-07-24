@@ -151,8 +151,8 @@ procedure TControllerBase.AtivarAllTrighers;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -189,8 +189,8 @@ procedure TControllerBase.DesativarAllTrighers;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add(concat(
@@ -280,9 +280,10 @@ function TControllerBase.getMaxTable(Field,Tab: String): Integer;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := 0;
+  Lc_Qry := GeraQuery;
   try
     try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         SQL.Clear;
@@ -434,11 +435,10 @@ end;
 
 procedure TControllerBase.setGenerator(Generator, Sequencia: String);
 var
-  Lc_SqlTxt: string;
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       CachedUpdates := True;
@@ -528,11 +528,10 @@ end;
 
 function TControllerBase.Generator(pc_Gen: string): Integer;
 var
-  Lc_SqlTxt: string;
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   TRy
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       CachedUpdates := True;
@@ -571,12 +570,6 @@ begin
 end;
 
 procedure TControllerBase.geralog(origem, msg: string);
-Var
-  Lc_Tabela : String;
-  Lc_Tamanho : Integer;
-  Lc_Posicao : Integer;
-  Lc_Campo:String;
-  Lc_Generator : String;
 begin
   GeralogCrashlytics(origem,msg);
   {

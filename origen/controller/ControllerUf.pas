@@ -36,10 +36,9 @@ uses Un_sistema, Un_funcoes,Un_Regra_Negocio;
 function TControllerUf.BuscaCodigo(sigla: String): Integer;
 Var
   Lc_Qry : TIBQuery;
-  Lc_SqlTxt : String;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('select UFE_CODIGO FROM TB_UF WHERE UFE_SIGLA=:UFE_SIGLA');
@@ -94,6 +93,7 @@ end;
 
 function TControllerUf.migra: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -129,8 +129,9 @@ var
   Lc_Qry : TIBQuery;
   LITem : TUf;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

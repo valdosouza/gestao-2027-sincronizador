@@ -88,10 +88,9 @@ end;
 procedure TControllerRetornoNFe.getByNotaFiscal;
 var
   Lc_Qry : TIBQuery;
-  LITem : TRetornoNFe;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -114,8 +113,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TRetornoNFe;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT NFE.* ',
@@ -159,8 +158,8 @@ procedure TControllerRetornoNFe.getSincronia;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -195,12 +194,14 @@ end;
 
 function TControllerRetornoNFe.insere: boolean;
 begin
+  Result := True;
   Registro.Codigo := Generator('GN_RETORNO_NFE');
   InsertObj(Registro);
 end;
 
 function TControllerRetornoNFe.migra: Boolean;
 begin
+    Result := True;
     InsertObj(Registro);
 end;
 
@@ -220,8 +221,9 @@ function TControllerRetornoNFe.UpdateFileXMl: Boolean;
 var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('UPDATE TB_RETORNO_NFE SET ',

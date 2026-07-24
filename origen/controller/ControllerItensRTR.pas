@@ -70,6 +70,7 @@ function TControllerItensRTR.updateQtdeLasItem(Pc_Cd_Pedido,Pc_Nr_Item:Integer;P
 var
   Lc_Qry : TIbQuery;
 begin
+  Result := True;
   try
     Lc_Qry := GeraQuery;
     with Lc_Qry DO

@@ -43,6 +43,7 @@ end;
 
 function TControllerPedidoCtrlMmb.salva: boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 

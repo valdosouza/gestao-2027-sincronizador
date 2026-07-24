@@ -106,10 +106,10 @@ end;
 function TControllerPlanoContas.getByPlano: Boolean;
 var
   Lc_Qry : TIBQuery;
-  LcLista : TPLanoContas;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -137,8 +137,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TPLanoContas;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;

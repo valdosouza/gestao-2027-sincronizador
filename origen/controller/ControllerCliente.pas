@@ -121,9 +121,6 @@ begin
 end;
 
 procedure TControllerCliente.fillDataObjeto;
-Var
-  LcPhone : TPhone;
-  LcAddress : TAddress;
 begin
   obj.clear;
   Empresa.Registro.Codigo := Registro.Codigo;
@@ -178,8 +175,9 @@ function TControllerCliente.getByFieldName(strTable, field,
 var
     Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := getbyField(strTable,Field,Content);
   Try
-    Lc_Qry := getbyField(strTable,Field,Content);
     exist  := ( Lc_Qry.RecordCount > 0 );
     if exist then
     Begin
@@ -202,8 +200,8 @@ var
   Lc_Qry : TIBQuery;
   LcLista : TCliente;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -231,9 +229,9 @@ var
   Lc_Qry : TIBQuery;
   Lc_Filter: TStrings;
 begin
+  Lc_Filter := TStringList.Create;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Filter := TStringList.Create;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -304,10 +302,6 @@ begin
 end;
 
 procedure TControllerCliente.saveObjWeb(pCustomer: TObjCustomer);
-Var
-  LcEndereco : TAddress;
-  LcFone : TPhone;
-  I : Integer;
 begin
   empresa.saveObjWeb(pCustomer.Fiscal);
   with Empresa.Registro do

@@ -25,7 +25,6 @@ uses un_dm;
 
 function Fc_Tb_Geral(Fc_Tipo: char; Fc_CAmpo: string; Fc_Conteudo: string): string;
 Var
-  Lc_Qry : TIBQuery;
   Lc_Geral : TControllerGeral;
 begin
   Try
@@ -94,9 +93,9 @@ Begin
   Begin
     if ( Trim( PathBD )<> '' ) then
     Begin
+      lcDM := TDM.Create(Application);
       try
         Try
-          lcDM := TDM.Create(Application);
           lcDM.IBD_Gestao.Close;
           lcDM.IBD_Gestao.DatabaseName := PathBD;
           lcDM.IBD_Gestao.Connected := True;
@@ -114,6 +113,7 @@ End;
 
 function ConectaBancoServidor(Conncec:Boolean):Boolean;
 Begin
+  Result := True;
   if Conncec then
   Begin
     if not DM.IBD_Servidor.Connected then
@@ -137,8 +137,8 @@ Function Fc_PingConectadoSetes():Boolean;
 Var
   Lc_ICMP: TIdIcmpClient;
 begin
+  Lc_ICMP := TIdIcmpClient.Create(nil);
   try
-    Lc_ICMP := TIdIcmpClient.Create(nil);
     try
       Lc_ICMP.Host := '200.150.205.102';
       Lc_ICMP.Ping();

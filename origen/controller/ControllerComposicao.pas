@@ -80,8 +80,8 @@ Var
   Lc_Qry : TIBQuery;
   Lcreg : TComposicao;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;

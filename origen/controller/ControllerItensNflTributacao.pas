@@ -73,6 +73,7 @@ end;
 
 function TControllerItensNflTributacao.getByKey: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
 end;
 

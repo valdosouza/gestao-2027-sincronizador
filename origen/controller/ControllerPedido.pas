@@ -1,7 +1,7 @@
-unit ControllerPedido;
+ï»¿unit ControllerPedido;
 
 interface
-uses ACBrUtil,IBDatabase,Classes, IBQuery, SysUtils,ControllerBase,
+uses  IBDatabase,Classes, IBQuery, SysUtils,ControllerBase,
       tblPedido ,Un_MSg,ControllerPedidoCtrlMmb,Datasnap.DBClient,
       ControllerEmpresa,ControllerEndereco, ControllerCliente,ControllerGestaoWeb,
       ControllerItensNFL, Generics.Collections, ControllerParcelamento,
@@ -70,7 +70,7 @@ Type
     function valorFinanceiro:Real;
     procedure Clear;
     function AtualizaPedidoConsumidor:Boolean;
-    procedure AplicarValorDescontoItens(PedidoID: Integer; ValorDesconto: real);
+
     procedure alteraStatus;
     procedure deleteByCodigoWeb(Id:Integer);
     function ValidaParcelamento(ValorCredito:Real):Boolean;
@@ -89,8 +89,8 @@ procedure TControllerPedido.alteraStatus;
 Var
   Lc_Qry: TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -104,7 +104,7 @@ Begin
       SQL.Add('WHERE (PED_CODIGO =:PED_CODIGO)');
 
       ParamByName('PED_CODIGO').AsInteger      := Registro.Codigo;
-      ParamByName('PED_FATURADO').AsAnsiString := Registro.Faturado;
+      ParamByName('PED_FATURADO').AsAnsiString := AnsiString(Registro.Faturado);
       ExecSQL;
     end;
   finally
@@ -113,120 +113,6 @@ Begin
 
 end;
 
-procedure TControllerPedido.AplicarValorDescontoItens(PedidoID: Integer;
-  ValorDesconto: real);
-var
-   Lc_Qry: TIBQuery;
-   Lc_Upt: TIBQuery;
-   Lc_SqlTxt: string;
-   Lc_VL_Pedido : Real;
-   Lc_Vl_Subtotal : Real;
-   Lc_Aq_Proporcao : Real;
-   Lc_Aq_Desconto : real;
-   Lc_VL_Desconto : Real;
-   Lc_VL_TL_Desconto : Real;
-   Lc_Cd_Item : Integer;
-   Lc_Cd_Item_Ant : Integer;
-   Lc_VL_Desconto_Ant : Real;
-   LcBreak : Boolean;
-begin
-  if (ValorDesconto > 0) then
-  Begin
-    //Zerando as variaveis
-    Lc_VL_Pedido := 0;
-    Lc_Vl_Subtotal :=0;
-    Lc_Aq_Proporcao :=0;
-    Lc_VL_Desconto :=0;
-    Lc_VL_TL_Desconto :=0;
-    Lc_VL_Desconto_Ant := 0;
-    Lc_Cd_Item_Ant := 0;
-    LcBreak := FAlse;
-    //Cria a Consulta
-    Try
-      Lc_Qry := geraQuery;
-      WITH Lc_Qry do
-      Begin
-        SQL.Clear;
-        //O desconto vai atingir somente os produtos e não os serviços devidoa questões fiscais na NFS-e
-        Lc_SqlTxt := 'SELECT ITF_CODIGO, ITF_VL_UNIT, ITF_QTDE ' +
-                      'FROM TB_ITENS_NFL ' +
-                      '  INNER JOIN TB_PRODUTO '+
-                      '  ON (PRO_CODIGO = ITF_CODPRO) '+
-                      'WHERE (ITF_CODPED=:ITF_CODPED) '+
-                      ' AND ( ITF_VL_UNIT > 0.01 ) '+
-                      ' AND ( PRO_TIPO <> ''S'' )'+
-                      'ORDER BY PRO_DESCRICAO ';
-        sql.Add(Lc_SqlTxt);
-        ParamByName('ITF_CODPED').AsInteger := PedidoID;
-        Active := True;
-        FetchAll;
-        //Calcula o valor total da Cotação
-        First;
-        while not eof do
-        Begin
-          Lc_VL_Pedido := Lc_VL_Pedido + (FieldByName('ITF_VL_UNIT').AsFloat * FieldByName('ITF_QTDE').AsFloat);
-          next;
-        end;
-        Lc_VL_Pedido:= RoundABNT(Lc_VL_Pedido,-2);
-
-        //Cria a Qry de Atualização
-        Lc_Upt := GEraQuery;
-        Lc_Upt.SQL.Clear;
-        Lc_SqlTxt := 'UPDATE TB_ITENS_NFL SET ' +
-                     'ITF_AQ_DESC=:ITF_AQ_DESC, ' +
-                     'ITF_VL_DESC=:ITF_VL_DESC ' +
-                     'WHERE (ITF_CODIGO=:ITF_CODIGO) ';
-        Lc_Upt.SQL.Add(Lc_SqlTxt);
-        First;
-        while not Eof do
-        begin
-          //Calculo pega o valor do subtotal do item
-          Lc_Vl_Subtotal := (FieldByName('ITF_VL_UNIT').AsFloat * FieldByName('ITF_QTDE').AsFloat);
-          //Guarda o codigo do item a ser atualizado
-          Lc_Cd_Item := FieldByName('ITF_CODIGO').AsInteger;
-          //Faz o calculo da aliquota
-          Lc_Aq_Proporcao := (Lc_Vl_Subtotal / Lc_VL_Pedido);
-          Lc_Aq_Proporcao := RoundTo( Lc_Aq_Proporcao,-4);
-          Lc_Vl_Desconto := ValorDesconto * Lc_Aq_Proporcao;
-          Lc_Vl_Desconto := RoundTo( Lc_Vl_Desconto,-2);
-          Lc_Aq_Desconto := (Lc_Vl_Desconto/Lc_Vl_Subtotal)*100;
-          Lc_Aq_Desconto := RoundTo( Lc_Aq_Desconto,-2);
-          Lc_VL_TL_Desconto := Lc_VL_TL_Desconto + Lc_Vl_Desconto;
-          //Avança para o proximo registro
-          Next;
-          //Verifica se e o ultimo registro para fazer compensação de arredondamento
-          if eof or ((Lc_VL_TL_Desconto >=ValorDesconto ) and (ValorDesconto >0) ) then
-          Begin
-            LcBreak := True;
-            if ( ValorDesconto > Lc_VL_TL_Desconto) then
-              Lc_VL_Desconto := Lc_VL_Desconto + ( ValorDesconto - Lc_VL_TL_Desconto)
-            else
-            Begin
-              Lc_VL_Desconto := Lc_VL_Desconto - (Lc_VL_TL_Desconto - ValorDesconto );
-              if (Lc_VL_Desconto < 0) then
-              Begin
-                Lc_Cd_Item := Lc_Cd_Item_Ant;
-                Lc_VL_Desconto := Lc_VL_Desconto + Lc_VL_Desconto_Ant;
-              end;
-            end;
-          end;
-          //Efetua a atualização
-          Lc_Cd_Item_Ant     := Lc_Cd_Item;
-          Lc_VL_Desconto_Ant := Lc_VL_Desconto;
-          Lc_Upt.Active      := False;
-          Lc_Upt.ParamByName('ITF_CODIGO').AsInteger := Lc_Cd_Item;
-          Lc_Upt.ParamByName('ITF_AQ_DESC').AsFloat  := Lc_Aq_Desconto;
-          Lc_Upt.ParamByName('ITF_VL_DESC').AsFloat  := Lc_Vl_Desconto;
-          Lc_Upt.ExecSQL;
-          if LcBreak  then Break;
-        end;
-      end;
-    Finally
-      FinalizaQuery( Lc_Upt );
-      FinalizaQuery( Lc_Qry );
-    End;
-  End;
-end;
 
 function TControllerPedido.atualiza: boolean;
 begin
@@ -242,8 +128,9 @@ function TControllerPedido.AtualizaPedidoConsumidor: Boolean;
 Var
   Lc_Qry: TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -284,8 +171,10 @@ Var
   Lc_Seq : Integer;
   Lc_setAll : Boolean;
 Begin
+  Lc_setAll := False;
+  Lc_Upd := GeraQuery;
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Upd := GeraQuery;
     with Lc_Upd do
     Begin
       SQL.Add(concat(
@@ -294,7 +183,6 @@ Begin
                 ' WHERE (ITF_CODIGO=:ITF_CODIGO) '
       ));
     End;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(concat(
@@ -356,6 +244,7 @@ end;
 
 function TControllerPedido.CriaPedidoOrcamento: Boolean;
 begin
+  Result := True;
   SaveObj(Registro);
 end;
 
@@ -365,8 +254,8 @@ Var
 Begin
   if Registro.CodigoWeb > 0 then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         Active := False;
@@ -407,8 +296,8 @@ Begin
     getIdByCodigoWeb;
   if Registro.Codigo > 0 then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         sql.Clear;
@@ -436,8 +325,8 @@ procedure TControllerPedido.deleteByCodigoWeb(Id: Integer);
 Var
   Lc_Qry : TIBquery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       //Restaurante
@@ -481,8 +370,8 @@ procedure TControllerPedido.enviaLixeira;
 Var
   Lc_Qry : TIBquery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Clear;
@@ -505,8 +394,8 @@ Begin
   Result := False;
   if ( Registro.Codigo > 0 ) then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         SQL.Add(' select PED_CODIGO '+
@@ -517,9 +406,9 @@ Begin
         FetchAll;
         if (Lc_Qry.RecordCount >0) then
         Begin
-          MensagemPadrao('Mensagem', 'A T E N Ç Ã O!.' + EOLN + EOLN +
-                         'Este pedido já foi Faturado.' + EOLN +
-                         '    Operação cancelada.'+EOLN,
+          MensagemPadrao('Mensagem', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
+                         'Este pedido jï¿½ foi Faturado.' + EOLN +
+                         '    Operaï¿½ï¿½o cancelada.'+EOLN,
                          ['OK'], [bEscape], mpInformacao);
           Result := True;
         end;
@@ -536,12 +425,12 @@ Var
   Lc_Qry : TIbQuery;
   Lc_Numero : Integer;
 Begin
-  //Faturado ou Excluido não serão alterados no sistema
+  //Faturado ou Excluido nï¿½o serï¿½o alterados no sistema
   Result := False;
   if ( Registro.CodigoWeb > 0 ) then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         SQL.Add(concat(
@@ -574,6 +463,7 @@ end;
 
 function TControllerPedido.insere: boolean;
 begin
+  Result := True;
   try
     Registro.Codigo := nextCodigo;
     InsertObj(Registro);
@@ -587,8 +477,9 @@ function TControllerPedido.LiberaEmUso: boolean;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('UPDATE tb_pedido SET PED_emuso = null where ped_codigo =:ped_codigo');
@@ -603,11 +494,13 @@ end;
 
 function TControllerPedido.migra: Boolean;
 begin
+  Result := True;
   InsertObj(Registro);
 end;
 
 function TControllerPedido.salva: boolean;
 begin
+  Result := True;
   if Registro.Codigo = 0 then
   Begin
     Registro.Codigo := nextCodigo;
@@ -621,6 +514,7 @@ end;
 
 function TControllerPedido.salvaPedidoInternet: Boolean;
 begin
+  Result := True;
   getIdByCodigoWeb;
   if Registro.Codigo = 0 then
   Begin
@@ -644,6 +538,7 @@ end;
 
 function TControllerPedido.getAll: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
   Empresa.Registro.Codigo := Self.Registro.Empresa;
   Empresa.getAllBykey;
@@ -660,8 +555,8 @@ procedure TControllerPedido.getIdByNumero();
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -688,8 +583,8 @@ function TControllerPedido.getIdNota: Integer;
 Var
   Lc_Qry : TIbQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(' select NFL_CODIGO '+
@@ -710,8 +605,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TPedido;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -758,8 +653,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TPedido;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT P.* ',
@@ -810,10 +705,9 @@ end;
 procedure TControllerPedido.getSincronia;
 var
   Lc_Qry : TIBQuery;
-  LITem : TPedido;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat(
@@ -895,10 +789,9 @@ end;
 procedure TControllerPedido.getUsuario;
 var
   Lc_Qry : TIBQuery;
-  LITem : TPedido;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('select first 1 usu_codigo ',
@@ -921,9 +814,9 @@ function TControllerPedido.getIdEmpresa:Integer;
 var
   Lc_Qry : TIBQuery;
 begin
+  Result := 0;
+  Lc_Qry := GeraQuery;
   Try
-    Result := 0;
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('select PED_CODEMP ',
@@ -944,8 +837,8 @@ procedure TControllerPedido.getByCodigoWeb;
 var
   Lc_Qry: TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add(Concat(
@@ -972,8 +865,8 @@ function TControllerPedido.getByEmpresa:Boolean;
 Var
   Lc_Qry : TIbQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -1000,8 +893,8 @@ procedure TControllerPedido.nextNumber(Metodo:String);
 var
   Lc_Qry: TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       getbyId;
@@ -1061,8 +954,8 @@ procedure TControllerPedido.GravaCredito;
 Var
   Lc_Qry : TIBQuery;
 Begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       SQL.Add('UPDATE TB_PEDIDO SET '+
@@ -1084,8 +977,8 @@ Begin
   Result := False;
   if ( Registro.Codigo > 0 ) then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         Active := False;
@@ -1104,9 +997,9 @@ Begin
         Begin
           if msg then
           Begin
-            MensagemPadrao('Mensagem', 'A T E N Ç Ã O!.' + EOLN + EOLN +
-                           'Há uma inconsistência no faturamento deste pedido.' + EOLN +
-                           ' Ele consta como faturado, vá em Nota Fiscal de Produtos '+EOLN+
+            MensagemPadrao('Mensagem', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
+                           'Hï¿½ uma inconsistï¿½ncia no faturamento deste pedido.' + EOLN +
+                           ' Ele consta como faturado, vï¿½ em Nota Fiscal de Produtos '+EOLN+
                            ' e cancele para refazer o processo.'+EOLN,
                            ['OK'], [bEscape], mpInformacao);
             Result := True;
@@ -1127,8 +1020,8 @@ Begin
   Result := False;
   if ( Registro.Codigo > 0 ) then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         Active := False;
@@ -1159,8 +1052,8 @@ Begin
   Result := False;
   if ( Registro.Codigo > 0 ) then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         Active := False;
@@ -1175,9 +1068,9 @@ Begin
         Begin
           if msg then
           Begin
-            MensagemPadrao('Mensagem', 'A T E N Ç Ã O!.' + EOLN + EOLN +
-                           'Este pedido já foi Faturado.' + EOLN +
-                           '    Operação cancelada.'+EOLN,
+            MensagemPadrao('Mensagem', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
+                           'Este pedido jï¿½ foi Faturado.' + EOLN +
+                           '    Operaï¿½ï¿½o cancelada.'+EOLN,
                            ['OK'], [bEscape], mpInformacao);
           End;
           Result := True;
@@ -1196,8 +1089,8 @@ begin
   Result := False;
   if ( Registro.Codigo > 0 ) then
   Begin
+    Lc_Qry := GeraQuery;
     Try
-      Lc_Qry := GeraQuery;
       with Lc_Qry do
       Begin
         Active := False;
@@ -1216,7 +1109,7 @@ begin
           else
           begin
             Result := False;
-            MensagemPadrao('Mensagem de erro', 'A T E N Ç Ã O!.' + EOLN + EOLN +
+            MensagemPadrao('Mensagem de erro', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
                            'Pedido visualizado no terminal ' + FieldbyName('PED_EMUSO').AsString + '.' + EOLN +
                            'Verifique e tente novamente.' + EOLN,
                            ['OK'], [bEscape], mpErro);
@@ -1258,9 +1151,9 @@ begin
     IF (Lc_ValorPedido <> Lc_ValorParcelado ) AND
        ( Lc_ValorParcelado >0) THEN
     BEGIN
-      MensagemPadrao('MENSAGEM DE ERRO','A T E N Ç Ã O!.'+EOLN+EOLN+
-                     'O Valor do Pedido não confere com Valor do Parcelamento.'+EOLN+
-                     'Refaça o parcelamento.'+EOLN,
+      MensagemPadrao('MENSAGEM DE ERRO','A T E N ï¿½ ï¿½ O!.'+EOLN+EOLN+
+                     'O Valor do Pedido nï¿½o confere com Valor do Parcelamento.'+EOLN+
+                     'Refaï¿½a o parcelamento.'+EOLN,
                      ['OK'],[BESCAPE],MPERRO);
       Result := FALSE;
     end;
@@ -1272,8 +1165,8 @@ var
   Lc_Qry: TIBQuery;
   Lc_Valor :REal;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -1287,7 +1180,6 @@ begin
       Active := True;
       First;
       Result := 0;
-      Lc_Valor := 0;
       while not Eof do
       begin
         Lc_Valor := FieldByName('ITF_VL_UNIT').AsFloat * FieldByName('ITF_QTDE').AsFloat;
@@ -1309,8 +1201,8 @@ var
   LcValor : Real;
   LcStrValor : String;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       Active := False;
@@ -1339,7 +1231,6 @@ begin
       Result := 0;
       while not Eof do
       begin
-        Lc_Subtotal := 0;
         LcValor := FieldByName('ITF_VL_UNIT').AsFloat * FieldByName('ITF_QTDE').AsFloat;
         LcValor := RoundTo( LcValor ,-2);
         LcStrValor  := FloatToStrF(LcValor , ffFixed, 10, 2);

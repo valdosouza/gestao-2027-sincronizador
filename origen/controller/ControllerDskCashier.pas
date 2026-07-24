@@ -78,6 +78,7 @@ end;
 
 function TControllerDskCashier.AbrirCaixa:boolean;
 begin
+  Result := True;
   Registro.Codigo := Fc_Generator('GN_CASHIER','TB_CASHIER','ID');
   Registro.Data := Date;
   Registro.Usuario := Registro.Usuario;
@@ -89,8 +90,8 @@ function TControllerDskCashier.VerificaCaixaAberto: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add('select id,dt_record  from tb_cashier '+
@@ -120,8 +121,8 @@ function TControllerDskCashier.VerificaCaixaFechadoAtual(Data:TDate): Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.Add('select id,dt_record,HR_END  from tb_cashier '+
@@ -154,9 +155,9 @@ Var
   lc_cashierItems : TDskCashierItems;
   I : Integer;
 begin
+  //Informa os valores que estavam no caixa no fechamento
+  lc_cashierItems := TDskCashierItems.Create;
   try
-   //Informa os valores que estavam no caixa no fechamento
-   lc_cashierItems := TDskCashierItems.Create;
     Try
       Result := True;
       lc_cashierItems.CodigoCaixa   := Registro.Codigo;
@@ -209,8 +210,8 @@ begin
 
     if Items.Lista.Count > 0 then
     Begin
+      Lc_forma_pagamento := TControllerFormaPagamento.Create(self);
       try
-        Lc_forma_pagamento := TControllerFormaPagamento.Create(self);
         Obj.setArrayItems(Items.Lista.Count);
         for I := 0 to Items.Lista.Count-1 do
         Begin
@@ -252,8 +253,8 @@ var
   Lc_Qry : TIBQuery;
   LITem : TDskCashier;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',
@@ -293,8 +294,8 @@ procedure TControllerDskCashier.getSincronia;
 var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   Try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       sql.add(concat('SELECT * ',

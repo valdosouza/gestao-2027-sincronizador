@@ -16,7 +16,7 @@ Type
 
   public
       constructor Create;
-      destructor Destroy;
+      destructor Destroy;reintroduce;
       procedure clear;
       property Fornecedor : TProvider read Fprovider write setFprovider;
       property Fiscal : TObjEntityFiscal read Ffiscal write setFfiscal;

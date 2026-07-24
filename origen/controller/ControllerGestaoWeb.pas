@@ -38,6 +38,7 @@ end;
 
 function TControllerGestaoWeb.getByKey: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
 end;
 
@@ -45,8 +46,9 @@ function TControllerGestaoWeb.getByWebID: Boolean;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Result := True;
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -73,8 +75,8 @@ function TControllerGestaoWeb.getNext: Integer;
 Var
   Lc_Qry : TIBQuery;
 begin
+  Lc_Qry := GeraQuery;
   try
-    Lc_Qry := GeraQuery;
     with Lc_Qry do
     Begin
       active := False;
@@ -111,6 +113,7 @@ end;
 
 function TControllerGestaoWeb.setToExport: Boolean;
 begin
+  Result := True;
   _getByKey(Registro);
   if not exist then
   Begin

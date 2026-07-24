@@ -51,8 +51,6 @@ procedure TControllerPedidoCompra.FillDataObjeto(PcReg: TPedido);
 Var
   I : Integer;
   lcitems : TOrderItem;
-  Lc_Colab : TControllercolaborador;
-  LcResult : boolean;
 begin
   //Order
   Obj.Order.Codigo          := PcReg.Codigo;
