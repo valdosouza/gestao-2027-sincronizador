@@ -178,8 +178,8 @@ const
 
     (Seq: 28; Way: 'E'; DescTabela: 'TB_RETORNO_NFS'; Kind: 'RETORNO_NFSE';
      DescProcess: 'Retorno de autorizacao NFS-e'; DescField: 'NFS_CODNFL';
-     Note: 'C3 CORRIGIDO: a classe NAO EXISTE (nao e so comentario) - precisa ser CRIADA (invoice_return_service_send_web.pas, molde invoice_return_55/65) antes de ligar SET_ON=S. Endpoint ja existe (Onda 6)';
-     SetOn: 'N'; ClassName: 'TInvoiceReturnServiceSendWeb'; EndPoint: '/invoice-return-service/sincronize'),
+     Note: 'Patch 04 (C3) APLICADO 2026-07-25: classe criada (invoice_return_service_send_web.pas + ControllerRetornoNFS, molde 55/65) e registrada no uMain. Endpoint Onda 6';
+     SetOn: 'S'; ClassName: 'TInvoiceReturnServiceSendWeb'; EndPoint: '/invoice-return-service/sincronize'),
 
     // ---- 29: arquivo XML (disco, nao mais banco) ----
     (Seq: 29; Way: 'E'; DescTabela: 'TB_ARQUIVOS'; Kind: 'ARQUIVO';

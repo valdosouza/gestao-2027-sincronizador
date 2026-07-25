@@ -19,6 +19,7 @@ uses
   category_send_web,file_send_web,financial_plans_send_web,financial_statement_send_web,
   financial_send_web,invoice_send_web,invoice_merchandise_send_web,
   invoice_rectification_send_web,invoice_return_55_send_web,invoice_return_65_send_web,
+  invoice_return_service_send_web,
   order_purchase_send_web,order_sale_send_web,order_stock_adjust_send_web,
    promotion_send_web,
   salesman_send_web,
@@ -407,8 +408,12 @@ begin
       ));
       Try
         tryExecIBSQL;
-        RunScript('ALTER TABLE TB_CRP_ITENS ADD CONSTRAINT PK_TB_CRP_ITENS PRIMARY KEY (CPI_SABOR, CPI_CODPRO);');
-        RunScript('ALTER TABLE TB_CRP_ITENS ADD CONSTRAINT FK_TB_CRP_ITENS_1 FOREIGN KEY (CPI_CODPRO) REFERENCES TB_PRODUTO (PRO_CODIGO);');
+        // MORTO (Patch 04/C4, decisao do Valdo 2026-07-25): estas constraints
+        // NUNCA rodaram (RunScript nao executava) e o modulo restaurante foi
+        // aposentado (D23). Criar PK/FK agora em bancos com dados sujos
+        // quebraria o Preparar Local — nao reativar.
+        //RunScript('ALTER TABLE TB_CRP_ITENS ADD CONSTRAINT PK_TB_CRP_ITENS PRIMARY KEY (CPI_SABOR, CPI_CODPRO);');
+        //RunScript('ALTER TABLE TB_CRP_ITENS ADD CONSTRAINT FK_TB_CRP_ITENS_1 FOREIGN KEY (CPI_CODPRO) REFERENCES TB_PRODUTO (PRO_CODIGO);');
       except
         sql.Clear;
       End;
@@ -694,6 +699,9 @@ begin
       ForcedRefresh := True;
       SQL.Clear;
       SQL.Add(Script);
+      // Patch 04 (C4): faltava executar — o metodo montava o SQL e commitava
+      // sem rodar nada, entao NENHUM script dos chamadores jamais foi aplicado.
+      ExecSQL;
       if (DM.Qr_Crud.Transaction.InTransaction) then DM.Qr_Crud.Transaction.Commit;
     end;
   Finally
@@ -1006,7 +1014,7 @@ initialization
   RegisterClass(TInvoiceRectificationSendWeb);
   RegisterClass(TInvoiceReturn55SendWeb);
   RegisterClass(TInvoiceReturn65SendWeb);
-  //RegisterClass(TInvoiceReturnServiceSendWeb);
+  RegisterClass(TInvoiceReturnServiceSendWeb); // Patch 04 (C3): NFS-e reativada
   RegisterClass(TMeasureSendWeb);
   RegisterClass(TMerchandiseSendWeb);
   RegisterClass(TOrderPurchaseSendWeb);
@@ -1044,7 +1052,7 @@ finalization
   UnRegisterClass(TInvoiceRectificationSendWeb);
   UnRegisterClass(TInvoiceReturn55SendWeb);
   UnRegisterClass(TInvoiceReturn65SendWeb);
-  //UnRegisterClass(TInvoiceReturnServiceSendWeb);
+  UnRegisterClass(TInvoiceReturnServiceSendWeb); // Patch 04 (C3)
   UnRegisterClass(TMeasureSendWeb);
   UnRegisterClass(TMerchandiseSendWeb);
   UnRegisterClass(TOrderPurchaseSendWeb);
