@@ -1,0 +1,17 @@
+# Build / IDE Delphi
+__history/
+__recovery/
+*.identcache
+*.local
+*.stat
+*.dsk
+*.dcu
+*.exe
+*.map
+*.drc
+*.tvsconfig
+*.~*
+
+# Configuração local por instalação (contém dados reais de cliente — NUNCA versionar)
+config
+*.ini
