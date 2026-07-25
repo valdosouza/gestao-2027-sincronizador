@@ -50,7 +50,12 @@ end;
 
 function TControllerTransportadora.salva: boolean;
 begin
-  SaveObj(Registro);
+  try
+    SaveObj(Registro);
+    Result := true;
+  Except
+    Result := False;
+  end;
 end;
 
 end.

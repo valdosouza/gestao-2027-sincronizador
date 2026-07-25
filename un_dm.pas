@@ -416,6 +416,14 @@ begin
     ExecComando('ALTER TABLE TB_EMPRESA ADD EXTERNALCODE VARCHAR(36)');
     ExecComando('CREATE INDEX IDX_EMPRESA_EXTERNALCODE ON TB_EMPRESA (EXTERNALCODE)');
   End;
+  // Decisao 1 da revisao de entidades (2026-07-25): colaborador sem CPF
+  // tambem fecha o ciclo do externalCode (TB_COLABORADOR e independente
+  // da TB_EMPRESA).
+  if not CampoExiste('TB_COLABORADOR','EXTERNALCODE') then
+  Begin
+    ExecComando('ALTER TABLE TB_COLABORADOR ADD EXTERNALCODE VARCHAR(36)');
+    ExecComando('CREATE INDEX IDX_COLABORADOR_EXTERNALCODE ON TB_COLABORADOR (EXTERNALCODE)');
+  End;
 end;
 
 { Passo 6 - triggers de captura TG_SRC_* (decisoes 5, 6 e 7): UMA trigger

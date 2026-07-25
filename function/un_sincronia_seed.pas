@@ -34,7 +34,7 @@ type
   end;
 
 const
-  SINCRONIA_SEED: array[0..36] of TSincroniaSeedRow = (
+  SINCRONIA_SEED: array[0..37] of TSincroniaSeedRow = (
     // ---- 1-12: cadastros (ordem de prioridade D8) ----
     (Seq: 1;  Way: 'E'; DescTabela: 'TB_MARCA_PRODUTO'; Kind: 'CADASTRO';
      DescProcess: 'Marca de produto (catalogo central)'; DescField: 'MRC_CODIGO';
@@ -227,7 +227,13 @@ const
     (Seq: 37; Way: 'E'; DescTabela: 'TB_REST_MENU_HAS_INGREDIENTE'; Kind: 'RESTAURANTE';
      DescProcess: 'Ingrediente do item'; DescField: '';
      Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestMenuHasIngredienteSendWeb'; EndPoint: '')
+     SetOn: 'N'; ClassName: 'TRestMenuHasIngredienteSendWeb'; EndPoint: ''),
+
+    // ---- 38: transportadora (decisao 4 da revisao de entidades 2026-07-25) ----
+    (Seq: 38; Way: 'E'; DescTabela: 'TB_TRANSPORTADORA'; Kind: 'CADASTRO';
+     DescProcess: 'Transportadora (cadeia central + papel)'; DescField: 'TRP_CODEMP';
+     Note: 'Decisao 4 (2026-07-25) - fecha o 409 CARRIER_NOT_SYNCED eterno do customer; sincronizar ANTES do cliente';
+     SetOn: 'S'; ClassName: 'TCarrierSendWeb'; EndPoint: '/carrier/sincronize')
   );
 
 implementation

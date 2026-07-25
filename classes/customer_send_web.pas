@@ -8,7 +8,6 @@ Type
   TCustomerSendWeb = class(TGeneralWeb)
     private
       FCtrl: TControllerCliente;
-      function ValidaDocFiscal: Boolean;
       // Onda revisão sincronizador (D3/D4): documento real do vendedor/
       // transportador — resolvido via DM.GetDocumentByEmpCodigo (nunca o
       // EMP_CODIGO interno). Retorna '' quando o código é 0 ou o lookup
@@ -109,18 +108,14 @@ begin
   Begin
     FCtrl.Empresa.Registro.Codigo := FCodigo;
     FCtrl.Empresa.getAllBykey;
-    if ValidaDocFiscal then
     Begin
       LcJson := TJSONObject.Create;
       Try
         // entity
         LcDoc := OnlyDigits(FCtrl.Empresa.Registro.CpfCNPJ);
-        // Sentinela do legado (TControllerEmpresa.criarEmpresaSemCPFCNPJ) — cliente
-        // sem documento vira personType 'N' (D4)
-        if (LcDoc = '') or (LcDoc = '12345677654321') then
-          LcPersonType := 'N'
-        else
-          LcPersonType := FCtrl.Empresa.Registro.TipoPessoa;
+        // decisao 2 da revisao de entidades: branco/sentinela/INVALIDO -> 'N'
+        // (fluxo externalCode) — validacao de digito verificador reativada
+        LcPersonType := DerivePersonType(LcDoc);
 
         LcEntity := TJSONObject.Create;
         LcEntity.AddPair('nameCompany', FCtrl.Empresa.Registro.NomeRazaoSocial);
@@ -261,16 +256,6 @@ begin
       End;
     End
   End;
-end;
-
-function TCustomerSendWeb.ValidaDocFiscal: Boolean;
-begin
-  {Retirada a valida��o pois estamos tratando documentos com numero invalidos
-  if (Length(FCtrl.Empresa.Registro.CpfCNPJ) = 11) then
-    Result := calculoCpf(FCtrl.Empresa.Registro.CpfCNPJ)
-  else
-    Result := calculoCnpj(FCtrl.Empresa.Registro.CpfCNPJ)}
-  Result := true;
 end;
 
 end.

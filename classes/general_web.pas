@@ -19,6 +19,7 @@ Type
     FEndPoint:  String;
     FApiKey:    String;
     FExternalCode: String;
+    FClearExternalCode: Boolean;
     FSincronia   : TControllerSincronia;
 
     //RESTResponseDSA: TRESTResponseDataSetAdapter;
@@ -49,12 +50,22 @@ Type
     // web_server (ID = status HTTP, Code = id do registro devolvido,
     // Mensagem = mensagem/erro) — não quebra os chamadores existentes.
     procedure ParseRetornoEnvelope;
+    // Decisao 2 da revisao de entidades (2026-07-25): documento branco,
+    // sentinela do legado ou INVALIDO (digito verificador) vira 'N' e segue
+    // pelo fluxo externalCode — nada encalha por 400 na API. 11 digitos
+    // validos = 'F'; 14 validos = 'J'.
+    function DerivePersonType(const pDoc: String): String;
   public
     constructor Create;Virtual;
     destructor  Destroy;override;
     procedure   Inicializa;Virtual;
     procedure send;
     procedure receive;Virtual;
+    // Decisao 1 da revisao de entidades: alvo do write-back do externalCode
+    // devolvido pela API (D4). Padrao TB_EMPRESA/EMP_CODIGO; classes cuja
+    // fonte nao e TB_EMPRESA (salesman -> TB_COLABORADOR) sobrescrevem.
+    function ExternalCodeTable: String; virtual;
+    function ExternalCodeKeyField: String; virtual;
     property Codigo      : Integer     read FCodigo   write setFCodigo;
     property Retorno     : TPrmRetorno read FRetorno  write setFRetorno;
     property URL         : String      read FURL      write setFURL;
@@ -66,6 +77,10 @@ Type
     // CPF/CNPJ (personType 'N') — quem chama send() lê esta propriedade
     // depois e grava em TB_EMPRESA.EXTERNALCODE (ver un_send_to_web_server).
     property ExternalCode: String      read FExternalCode;
+    // Graduacao do sem-doc (decisao 1 de prompt_correcao_documento_entidade.md):
+    // true = o documento corrigido virou o indice; limpar o EXTERNALCODE no
+    // Firebird (tabela/campo de ExternalCodeTable/KeyField).
+    property ClearExternalCode: Boolean read FClearExternalCode;
     property InstitutionOrigem:Integer  Read FInstitutionOrigem  write setFInstitutionOrigem;
     property InstitutionDestino:Integer Read FInstitutionDestino write setFInstitutionDestino;
 
@@ -80,7 +95,26 @@ implementation
 
 { TGeneralWeb }
 
-uses customer_send_web;
+uses customer_send_web, UnFunctions;
+
+function TGeneralWeb.DerivePersonType(const pDoc: String): String;
+begin
+  // decisao 3: sentinela de criarEmpresaSemCPFCNPJ mantida como dupla protecao
+  if (pDoc = '') or (pDoc = '12345677654321') then Exit('N');
+  if (Length(pDoc) = 11) and CalculoCpf(pDoc)  then Exit('F');
+  if (Length(pDoc) = 14) and CalculoCnpj(pDoc) then Exit('J');
+  Result := 'N';
+end;
+
+function TGeneralWeb.ExternalCodeTable: String;
+begin
+  Result := 'TB_EMPRESA';
+end;
+
+function TGeneralWeb.ExternalCodeKeyField: String;
+begin
+  Result := 'EMP_CODIGO';
+end;
 
 procedure TGeneralWeb.configComponents;
 Var
@@ -157,6 +191,7 @@ Var
   LcId      : Integer;
 begin
   FExternalCode := '';
+  FClearExternalCode := False;
   FRetorno.Clear;
 
   // D14: sucesso/erro é decidido pelo STATUS HTTP (200 = ok), não só pelo
@@ -184,6 +219,10 @@ begin
 
         if Assigned(LcJson.GetValue('externalCode')) then
           FExternalCode := LcJson.GetValue('externalCode').Value;
+
+        // graduacao (decisao 1): sinal explicito de limpar o vinculo
+        if Assigned(LcJson.GetValue('clearExternalCode')) then
+          FClearExternalCode := LcJson.GetValue('clearExternalCode').Value = 'true';
       End
       else
       Begin

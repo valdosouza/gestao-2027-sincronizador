@@ -14,10 +14,14 @@ type
     procedure SyncTable(indice: Integer);
     procedure send;
     // D4/D14: registro sem CPF/CNPJ (personType 'N') — a setes-sync devolve
-    // o UUID gerado na 1ª sincronização; gravamos em TB_EMPRESA.EXTERNALCODE
-    // (patch 01_firebird_ddl.sql) para os próximos ciclos reindexarem por
-    // UUID em vez de correr o risco de duplicar o cliente/fornecedor/vendedor.
-    procedure SaveExternalCode(pCodigoEmpresa: Integer; pExternalCode: String);
+    // o UUID gerado na 1ª sincronização; gravado na tabela/campo informados
+    // pela PROPRIA classe (decisao 1 da revisao de entidades 2026-07-25:
+    // TB_EMPRESA/EMP_CODIGO por padrao, TB_COLABORADOR/CLB_CODIGO no
+    // salesman) para os próximos ciclos reindexarem por UUID sem duplicar.
+    procedure SaveExternalCode(pSendWeb: TGeneralWeb);
+    // Graduacao do sem-doc (decisao 1 de prompt_correcao_documento_entidade.md):
+    // documento corrigido virou o indice — limpa o EXTERNALCODE da tabela da classe.
+    procedure ClearExternalCode(pSendWeb: TGeneralWeb);
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
@@ -69,8 +73,10 @@ begin
           Try
             LcSendWeb.Codigo := FSincronia.Lista[I].Registro;
             LcSendWeb.send;
-            if LcSendWeb.ExternalCode <> '' then
-              SaveExternalCode(LcSendWeb.Codigo, LcSendWeb.ExternalCode);
+            if LcSendWeb.ClearExternalCode then
+              ClearExternalCode(LcSendWeb)
+            else if LcSendWeb.ExternalCode <> '' then
+              SaveExternalCode(LcSendWeb);
           Finally
             FSincronia.Clear;
             FSincronia.Registro.Tabela    := FListaSincronia.Registro.Tabela;
@@ -105,11 +111,22 @@ begin
 
 end;
 
-procedure TSendToWebServer.SaveExternalCode(pCodigoEmpresa: Integer; pExternalCode: String);
+procedure TSendToWebServer.SaveExternalCode(pSendWeb: TGeneralWeb);
+begin
+  // decisao 1: a classe informa o alvo (TB_EMPRESA x TB_COLABORADOR)
+  DM.ExecComando(
+    'UPDATE ' + pSendWeb.ExternalCodeTable +
+    ' SET EXTERNALCODE = ''' + pSendWeb.ExternalCode + ''' ' +
+    'WHERE ' + pSendWeb.ExternalCodeKeyField + ' = ' + IntToStr(pSendWeb.Codigo)
+  );
+end;
+
+procedure TSendToWebServer.ClearExternalCode(pSendWeb: TGeneralWeb);
 begin
   DM.ExecComando(
-    'UPDATE TB_EMPRESA SET EXTERNALCODE = ''' + pExternalCode + ''' ' +
-    'WHERE EMP_CODIGO = ' + IntToStr(pCodigoEmpresa)
+    'UPDATE ' + pSendWeb.ExternalCodeTable +
+    ' SET EXTERNALCODE = NULL ' +
+    'WHERE ' + pSendWeb.ExternalCodeKeyField + ' = ' + IntToStr(pSendWeb.Codigo)
   );
 end;
 

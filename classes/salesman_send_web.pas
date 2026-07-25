@@ -10,6 +10,10 @@ Type
     private
       FCtrl: TControllerColaborador;
       function ValidaSendSalesman(): Boolean;
+      // decisao 1 da revisao de entidades (2026-07-25): colaborador sem CPF
+      // reenvia o UUID gravado em TB_COLABORADOR.EXTERNALCODE (bootstrap cria
+      // a coluna) — mesmo ciclo do TB_EMPRESA nas classes customer/provider.
+      function GetExternalCodeColaborador: String;
       function DateToIso(pData: TDate): String;
       function OnlyDigits(pTexto: String): String;
     protected
@@ -17,13 +21,49 @@ Type
     public
     constructor Create;override;
     destructor Destroy;override;
+    // decisao 1: write-back do externalCode na TB_COLABORADOR (nao TB_EMPRESA)
+    function ExternalCodeTable: String; override;
+    function ExternalCodeKeyField: String; override;
   end;
 
 implementation
 
 { TGeneralWeb }
 
-uses UnFunctions, un_dm;
+uses UnFunctions, un_dm, IBX.IBQuery;
+
+function TSalesManSendWeb.ExternalCodeTable: String;
+begin
+  Result := 'TB_COLABORADOR';
+end;
+
+function TSalesManSendWeb.ExternalCodeKeyField: String;
+begin
+  Result := 'CLB_CODIGO';
+end;
+
+function TSalesManSendWeb.GetExternalCodeColaborador: String;
+Var
+  Lc_Qry : TIBQuery;
+begin
+  Result := '';
+  Lc_Qry := FCtrl.GeraQuery;
+  Try
+    with Lc_Qry do
+    Begin
+      Active := False;
+      Sql.Clear;
+      Sql.Add('SELECT EXTERNALCODE FROM TB_COLABORADOR WHERE CLB_CODIGO = :CLB_CODIGO');
+      ParamByName('CLB_CODIGO').AsInteger := FCodigo;
+      Active := True;
+      FetchAll;
+      if (RecordCount > 0) then
+        Result := Trim(FieldByName('EXTERNALCODE').AsString);
+    end;
+  Finally
+    FCtrl.FinalizaQuery(Lc_Qry);
+  End;
+end;
 
 constructor TSalesManSendWeb.Create;
 begin
@@ -64,6 +104,7 @@ Var
   LcMailing      : TJSONObject;
   LcDoc          : String;
   LcPersonType   : String;
+  LcExternalCode : String;
   LcUF           : TControllerUf;
   LcCidade       : TControllerCidade;
   LcCodigoEstado : Integer;
@@ -79,12 +120,10 @@ begin
       LcJson := TJSONObject.Create;
       Try
         LcDoc := OnlyDigits(FCtrl.Registro.CPFCNPJ);
-        if LcDoc = '' then
-          LcPersonType := 'N'
-        else if Length(LcDoc) = 11 then
-          LcPersonType := 'F'
-        else
-          LcPersonType := 'J';
+        // decisao 2 da revisao de entidades: branco/INVALIDO -> 'N' (fluxo
+        // externalCode); corrige tambem o bug antigo em que qualquer doc
+        // fora de 11 digitos virava 'J' com CNPJ invalido (400 eterno)
+        LcPersonType := DerivePersonType(LcDoc);
 
         LcEntity := TJSONObject.Create;
         LcEntity.AddPair('nameCompany', FCtrl.Registro.Nome);
@@ -113,11 +152,11 @@ begin
             .AddPair('dtFoundation', DateToIso(FCtrl.Registro.NAscimento)));
         End;
 
-        // TODO: TB_COLABORADOR não tem coluna EXTERNALCODE (só TB_EMPRESA —
-        // D4/D14) — vendedor sem CPF/CNPJ (personType 'N') não tem como
-        // persistir o UUID devolvido para reenvio; gap conhecido, pendente
-        // de DDL (ver un_send_to_web_server.SaveExternalCode, que assume
-        // TB_EMPRESA para qualquer classe).
+        // externalCode — só quando já sincronizado antes (reenvio, D4);
+        // decisao 1: TB_COLABORADOR.EXTERNALCODE (gap do TODO antigo fechado)
+        LcExternalCode := GetExternalCodeColaborador;
+        if LcExternalCode <> '' then
+          LcJson.AddPair('externalCode', LcExternalCode);
 
         // addresses — endereço único do colaborador (UF/Cidade por
         // descrição, igual ao padrão já usado em ControllerColaborador.FillDataObjeto)

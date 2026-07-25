@@ -19,7 +19,7 @@ uses
   category_send_web,file_send_web,financial_plans_send_web,financial_statement_send_web,
   financial_send_web,invoice_send_web,invoice_merchandise_send_web,
   invoice_rectification_send_web,invoice_return_55_send_web,invoice_return_65_send_web,
-  invoice_return_service_send_web,
+  invoice_return_service_send_web,carrier_send_web,
   order_purchase_send_web,order_sale_send_web,order_stock_adjust_send_web,
    promotion_send_web,
   salesman_send_web,
@@ -1003,6 +1003,7 @@ initialization
   RegisterClass(TPaymentTypeSendWeb);
   RegisterClass(TBankAccountSendWeb);
   RegisterClass(TBrandSendWeb);
+  RegisterClass(TCarrierSendWeb); // decisao 4 da revisao de entidades (2026-07-25)
   RegisterClass(TCashierSendWeb);
   RegisterClass(TCategorySendWeb);
   RegisterClass(TFileSendWeb);
@@ -1041,6 +1042,7 @@ finalization
   UnRegisterClass(TPaymentTypeSendWeb);
   UnRegisterClass(TBankAccountSendWeb);
   UnRegisterClass(TBrandSendWeb);
+  UnRegisterClass(TCarrierSendWeb); // decisao 4
   UnRegisterClass(TCashierSendWeb);
   UnRegisterClass(TCategorySendWeb);
   UnRegisterClass(TFileSendWeb);
