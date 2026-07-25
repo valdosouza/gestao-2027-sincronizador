@@ -1,4 +1,4 @@
-unit tas_config;
+﻿unit tas_config;
 
 interface
 
@@ -31,11 +31,7 @@ type
     tbs_conexao: TTabSheet;
     pnl_config: TPanel;
     Label4: TLabel;
-    Label1: TLabel;
-    Label5: TLabel;
     ChBx_IniciarWindows: TCheckBox;
-    E_institution_origem: TEdit;
-    E_CNPJ: TEdit;
     Label2: TLabel;
     E_Path_BD_Local: TEdit;
     Label3: TLabel;
@@ -75,10 +71,12 @@ type
     ChBx_Periodo: TCheckBox;
     Label7: TLabel;
     E_Path_url: TEdit;
-    Label6: TLabel;
     Label11: TLabel;
-    E_Porta: TEdit;
     E_Terminal: TEdit;
+    // D12 (revisao do sincronizador): chave de instalacao por cliente,
+    // enviada como header X-Api-Key (lida em un_sincroniza: SISWEB\FApiKey)
+    Lb_ApiKey: TLabel;
+    E_ApiKey: TEdit;
     procedure Sb_CloseClick(Sender: TObject);
     procedure SpeedButton1Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -135,14 +133,6 @@ type
     //procedure FC_RetornoNFSe;
     procedure FC_CartaCorrecao;
     procedure FC_Arquivos;
-
-    procedure FC_OrderConsignament;
-    procedure Fc_RestMenu;
-    procedure FC_RestMenuHasIngrediente;
-    procedure FC_RestGroup;
-    procedure FC_RestSubgroup;
-    procedure FC_RestGroupHasMeasure;
-    procedure Fc_RestGroupHasOptiona;
 
   public
     { Public declarations }
@@ -206,7 +196,7 @@ Var
 begin
   LcCtrl := TControllerArquivo.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 0;
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -236,7 +226,7 @@ Var
 begin
   LcCtrl := TcontrollerCartaCorrecao.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 0;
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -400,7 +390,7 @@ Var
 begin
   LcCtrl := TControllerDskCashier.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -480,7 +470,7 @@ Var
 begin
   LcCtrl := TControllerEstoques.Create(nil);
   try
-    LcCtrl.Registro.Estabelecimento := StrToIntDef(E_institution_origem.Text,0);
+    LcCtrl.Registro.Estabelecimento := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.getList;
     GG_Web_Process.MinValue := 0;
     GG_Web_Process.Progress := 0;
@@ -508,7 +498,7 @@ Var
 begin
   LcCtrl := TControllerFinanceiro.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -623,8 +613,8 @@ begin
 
         //Verifica se tem a Categoria
 
-        LcCategory.getAutoCreateByGrupo( StrToIntDef( E_institution_origem.Text,1), String(FieldByName('GRP_DESCRICAO').AsAnsiString));
-        LcCategory.getAutoCreateBySubGrupo( StrToIntDef( E_institution_origem.Text,1),LcCategory.Registro.NivelPosicao , String(FieldByName('SBG_DESCRICAO').AsAnsiString));
+        LcCategory.getAutoCreateByGrupo( 1, String(FieldByName('GRP_DESCRICAO').AsAnsiString));
+        LcCategory.getAutoCreateBySubGrupo( 1,LcCategory.Registro.NivelPosicao , String(FieldByName('SBG_DESCRICAO').AsAnsiString));
 
         LcProduto.Registro.Codigo := FieldByName('PRO_CODIGO').AsInteger;
         LcProduto.Registro.Categoria := LcCategory.Registro.Codigo;
@@ -732,7 +722,7 @@ Var
 begin
   LcCtrl := TControllerMovimentoFinanceiro.Create(nil);
   try
-    LcCtrl.Estabel    := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel    := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -763,7 +753,7 @@ Var
 begin
   LcCtrl := TControllerNotaFiscal.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.TipoNota         := 'EM';
     LcCtrl.TipoPedido       := 0;
@@ -798,7 +788,7 @@ Var
 begin
   LcCtrl := TControllerNotaFiscal.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.TipoNota         := '';
     LcCtrl.TipoPedido       := 0;
@@ -826,11 +816,6 @@ begin
   end;
 end;
 
-procedure TTasConfig.FC_OrderConsignament;
-begin
-
-end;
-
 procedure TTasConfig.Fc_PedidoAjuste;
 Var
   LcCtrl : TControllerPedido;
@@ -838,7 +823,7 @@ Var
 begin
   LcCtrl := TControllerPedido.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.Registro.Tipo    := 3;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -870,7 +855,7 @@ Var
 begin
   LcCtrl := TControllerPedido.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.Registro.Tipo    := 2;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -900,7 +885,7 @@ Var
 begin
   LcCtrl := TControllerPedido.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.Registro.Tipo    := 1;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
@@ -1013,164 +998,6 @@ begin
   end;
 end;
 
-procedure TTasConfig.FC_RestGroup;
-Var
-  LcCtrl : TControllerGrupos;
-  I : Integer;
-begin
-  LcCtrl := TControllerGrupos.Create(nil);
-  try
-    LcCtrl.Registro.Composicao := 'S';//s apenas para o preenchimento
-    LcCtrl.getList;
-    GG_Web_Process.MinValue := 0;
-    GG_Web_Process.Progress := 0;
-    GG_Web_Process.MaxValue := LcCtrl.Lista.Count;
-    GG_Web_Process.Update;
-    for I := 0 to LcCtrl.Lista.Count -1 do
-    Begin
-      Lb_Web_Process.Caption := concat('Processando Grupos do restaurante ',IntToStr(I));
-      GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
-      GG_Web_Process.Update;
-      LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
-      LcCtrl.update;
-    End;
-  finally
-    LcCtrl.DisposeOf;
-  end;
-
-end;
-
-procedure TTasConfig.FC_RestGroupHasMeasure;
-Var
-  LcCtrl : TControllerMedida;
-  I : Integer;
-begin
-  LcCtrl := TControllerMedida.Create(nil);
-  try
-    LcCtrl.Registro.MedidaCardapio := 'S';  //S apenas para o preenchimento
-    LcCtrl.getList;
-    GG_Web_Process.MinValue := 0;
-    GG_Web_Process.Progress := 0;
-    GG_Web_Process.MaxValue := LcCtrl.Lista.Count;
-    GG_Web_Process.Update;
-    for I := 0 to LcCtrl.Lista.Count -1 do
-    Begin
-      Lb_Web_Process.Caption := concat('Processando Medidas do Grupo ',IntToStr(I));
-      GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
-      GG_Web_Process.Update;
-      LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
-      LcCtrl.update;
-    End;
-  finally
-    LcCtrl.DisposeOf;
-  end;
-end;
-
-procedure TTasConfig.Fc_RestGroupHasOptiona;
-Var
-  LcCtrl : TControllerCrpItens;
-  I : Integer;
-begin
-  LcCtrl := TControllerCrpItens.Create(nil);
-  try
-    LcCtrl.Registro.Tipo := 'O';
-    LcCtrl.getList;
-    GG_Web_Process.MinValue := 0;
-    GG_Web_Process.Progress := 0;
-    GG_Web_Process.MaxValue := LcCtrl.Lista.Count;
-    GG_Web_Process.Update;
-    for I := 0 to LcCtrl.Lista.Count -1 do
-    Begin
-      Lb_Web_Process.Caption := concat('Processando Opcionais do Grupo: ',IntToStr(I));
-      GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
-      GG_Web_Process.Update;
-      LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
-      LcCtrl.update;
-    End;
-  finally
-    LcCtrl.DisposeOf;
-  end;
-end;
-
-procedure TTasConfig.Fc_RestMenu;
-Var
-  LcCtrl : TControllerProduto;
-  I : Integer;
-begin
-  LcCtrl := TControllerProduto.Create(nil);
-  try
-    LcCtrl.Registro.Tipo := 'A';
-    LcCtrl.getList('0');
-    GG_Web_Process.MinValue := 0;
-    GG_Web_Process.Progress := 0;
-    GG_Web_Process.MaxValue := LcCtrl.Lista.Count;
-    GG_Web_Process.Update;
-    for I := 0 to LcCtrl.Lista.Count -1 do
-    Begin
-      Lb_Web_Process.Caption := concat('Processando Menu do Card�pio: ',IntToStr(I));
-      GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
-      GG_Web_Process.Update;
-      LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
-      LcCtrl.update;
-    End;
-  finally
-    LcCtrl.DisposeOf;
-  end;
-end;
-
-procedure TTasConfig.FC_RestMenuHasIngrediente;
-Var
-  LcCtrl : TControllerCrpItens;
-  I : Integer;
-begin
-  LcCtrl := TControllerCrpItens.Create(nil);
-  try
-    LcCtrl.Registro.Tipo := 'P';
-    LcCtrl.getList;
-    GG_Web_Process.MinValue := 0;
-    GG_Web_Process.Progress := 0;
-    GG_Web_Process.MaxValue := LcCtrl.Lista.Count;
-    GG_Web_Process.Update;
-    for I := 0 to LcCtrl.Lista.Count -1 do
-    Begin
-      Lb_Web_Process.Caption := concat('Processando Ingredientes do Menu do Card�pio: ',IntToStr(I));
-      GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
-      GG_Web_Process.Update;
-      LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
-      LcCtrl.update;
-    End;
-  finally
-    LcCtrl.DisposeOf;
-  end;
-end;
-
-procedure TTasConfig.FC_RestSubgroup;
-Var
-  LcCtrl : TControllerSubGrupos;
-  I : Integer;
-begin
-  LcCtrl := TControllerSubGrupos.Create(nil);
-  try
-    LcCtrl.Registro.Abas := 'S';//s apenas para o preenchimento
-    LcCtrl.getList;
-    GG_Web_Process.MinValue := 0;
-    GG_Web_Process.Progress := 0;
-    GG_Web_Process.MaxValue := LcCtrl.Lista.Count;
-    GG_Web_Process.Update;
-    for I := 0 to LcCtrl.Lista.Count -1 do
-    Begin
-      Lb_Web_Process.Caption := concat('Processando Subgrupos do restaurante ',IntToStr(I));
-      GG_Web_Process.Progress := GG_Web_Process.Progress + 1;
-      GG_Web_Process.Update;
-      LcCtrl.ClonarObj(LcCtrl.Lista[I],LcCtrl.Registro);
-      LcCtrl.update;
-    End;
-  finally
-    LcCtrl.DisposeOf;
-  end;
-
-end;
-
 procedure TTasConfig.FC_RetornoNFCe;
 Var
   LcCtrl : TControllerREtornoNFCe;
@@ -1178,7 +1005,7 @@ Var
 begin
   LcCtrl := TControllerREtornoNFCe.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -1208,7 +1035,7 @@ Var
 begin
   LcCtrl := TControllerREtornoNfe.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1 { estabelecimento local; institution resolvida pela X-Api-Key (D12) };
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -1238,7 +1065,7 @@ Var
 begin
   LcCtrl := TControllerRetornoNFS.Create(nil);
   try
-    LcCtrl.Estabel          := StrToIntDef(E_institution_origem.Text,1);
+    LcCtrl.Estabel          := 1;
     LcCtrl.Periodo          := ChBx_Periodo.Checked;
     LcCtrl.DataInicial      := Dtp_Data_Inicial.DateTime;
     LcCtrl.DataFinal        := Dtp_Data_Final.DateTime;
@@ -1361,17 +1188,16 @@ begin
 
   E_NoMinuto.Text                 := Fc_Aq_Geral('L','SISWEB', 'nominuto','5');
 
-  E_institution_origem.Text       := Fc_Aq_Geral('L','SISWEB', 'institution_origem','1');
 
   Chbx_AutoMinimize.Checked       := (Fc_Aq_Geral('L','SISWEB', 'AutoMinimize','S') = 'S');
 
   ChBx_IniciarWindows.Checked     := (Fc_Aq_Geral('L','SISWEB', 'startWind','S') = 'S' );
 
-  E_CNPJ.Text                     := Fc_Aq_Geral('L','SISWEB', 'CNPJ','');
 
   E_Path_url.Text                 := Fc_Aq_Geral('L', 'SISWEB', 'FPathURL','0');
 
-  E_PORTA.Text                    := Fc_Aq_Geral('L', 'SISWEB', 'PORTA','223');
+  E_ApiKey.Text                   := Fc_Aq_Geral('L', 'SISWEB', 'FApiKey','');
+
 
   E_Terminal.Text                 := Fc_Aq_Geral('L', 'SISWEB', 'TERMINAL','0');
 
@@ -1446,9 +1272,7 @@ begin
   else
     Fc_Aq_Geral('G', 'SISWEB', 'startWind','N');
 
-  Fc_Aq_Geral('G','SISWEB', 'institution_origem',E_institution_origem.Text);
 
-  Fc_Aq_Geral('G', 'SISWEB', 'CNPJ',E_CNPJ.Text);
 
   if Chbx_ReceiveWebServer.Checked then
     Fc_Aq_Geral('G', 'SISWEB', 'ReceiveWebServer','S')
@@ -1462,7 +1286,8 @@ begin
 
   Fc_Aq_Geral('G', 'SISWEB', 'FPathURL',E_Path_url.Text);
 
-  Fc_Aq_Geral('G', 'SISWEB', 'PORTA',E_PORTA.Text);
+  Fc_Aq_Geral('G', 'SISWEB', 'FApiKey',Trim(E_ApiKey.Text));
+
 
   Fc_Aq_Geral('G', 'SISWEB', 'TERMINAL',E_Terminal.Text);
 
@@ -1529,14 +1354,11 @@ begin
    // if ChLBx_First_Charge.Checked[32] then FC_RetornoNFSe;
     if ChLBx_First_Charge.Checked[33] then FC_CartaCorrecao;
     if ChLBx_First_Charge.Checked[34] then FC_Arquivos;
-    if ChLBx_First_Charge.Checked[35] then FC_OrderConsignament;
-    if ChLBx_First_Charge.Checked[36] then Fc_RestMenu;
-    if ChLBx_First_Charge.Checked[37] then FC_RestMenuHasIngrediente;
-    if ChLBx_First_Charge.Checked[38] then FC_RestGroup;
-    if ChLBx_First_Charge.Checked[39] then FC_RestSubgroup;
-    if ChLBx_First_Charge.Checked[40] then FC_RestGroupHasMeasure;
-    if ChLBx_First_Charge.Checked[41] then Fc_RestGroupHasOptiona;
-    if ChLBx_First_Charge.Checked[42] then Fc_HIstoricoBancario;
+    // [35] Consignacao: sem processo de carga (corpo era vazio).
+    // [36..41] Modulo restaurante APOSENTADO (D23 da revisao do sincronizador)
+    // - itens permanecem na lista so para nao deslocar os indices salvos.
+    // [42] OPCIONAIS BORDA - TESTE: disparava Fc_HIstoricoBancario por engano
+    // (bug de indice) - removido.
     if ChLBx_First_Charge.Checked[43] then Fc_HIstoricoBancario;
     if ChLBx_First_Charge.Checked[44] then Fc_Cashier;
   Finally

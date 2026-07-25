@@ -1,7 +1,7 @@
-ï»¿unit ControllerPedido;
+unit ControllerPedido;
 
 interface
-uses  IBDatabase,Classes, IBQuery, SysUtils,ControllerBase,
+uses  ACBrUtil.Math, IBDatabase,Classes, IBQuery, SysUtils,ControllerBase,
       tblPedido ,Un_MSg,ControllerPedidoCtrlMmb,Datasnap.DBClient,
       ControllerEmpresa,ControllerEndereco, ControllerCliente,ControllerGestaoWeb,
       ControllerItensNFL, Generics.Collections, ControllerParcelamento,
@@ -406,9 +406,9 @@ Begin
         FetchAll;
         if (Lc_Qry.RecordCount >0) then
         Begin
-          MensagemPadrao('Mensagem', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
-                         'Este pedido jï¿½ foi Faturado.' + EOLN +
-                         '    Operaï¿½ï¿½o cancelada.'+EOLN,
+          MensagemPadrao('Mensagem', 'A T E N Ç Ã O!.' + EOLN + EOLN +
+                         'Este pedido já foi Faturado.' + EOLN +
+                         '    Operação cancelada.'+EOLN,
                          ['OK'], [bEscape], mpInformacao);
           Result := True;
         end;
@@ -425,7 +425,7 @@ Var
   Lc_Qry : TIbQuery;
   Lc_Numero : Integer;
 Begin
-  //Faturado ou Excluido nï¿½o serï¿½o alterados no sistema
+  //Faturado ou Excluido não serão alterados no sistema
   Result := False;
   if ( Registro.CodigoWeb > 0 ) then
   Begin
@@ -997,9 +997,9 @@ Begin
         Begin
           if msg then
           Begin
-            MensagemPadrao('Mensagem', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
-                           'Hï¿½ uma inconsistï¿½ncia no faturamento deste pedido.' + EOLN +
-                           ' Ele consta como faturado, vï¿½ em Nota Fiscal de Produtos '+EOLN+
+            MensagemPadrao('Mensagem', 'A T E N Ç Ã O!.' + EOLN + EOLN +
+                           'Há uma inconsistência no faturamento deste pedido.' + EOLN +
+                           ' Ele consta como faturado, vá em Nota Fiscal de Produtos '+EOLN+
                            ' e cancele para refazer o processo.'+EOLN,
                            ['OK'], [bEscape], mpInformacao);
             Result := True;
@@ -1068,9 +1068,9 @@ Begin
         Begin
           if msg then
           Begin
-            MensagemPadrao('Mensagem', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
-                           'Este pedido jï¿½ foi Faturado.' + EOLN +
-                           '    Operaï¿½ï¿½o cancelada.'+EOLN,
+            MensagemPadrao('Mensagem', 'A T E N Ç Ã O!.' + EOLN + EOLN +
+                           'Este pedido já foi Faturado.' + EOLN +
+                           '    Operação cancelada.'+EOLN,
                            ['OK'], [bEscape], mpInformacao);
           End;
           Result := True;
@@ -1109,7 +1109,7 @@ begin
           else
           begin
             Result := False;
-            MensagemPadrao('Mensagem de erro', 'A T E N ï¿½ ï¿½ O!.' + EOLN + EOLN +
+            MensagemPadrao('Mensagem de erro', 'A T E N Ç Ã O!.' + EOLN + EOLN +
                            'Pedido visualizado no terminal ' + FieldbyName('PED_EMUSO').AsString + '.' + EOLN +
                            'Verifique e tente novamente.' + EOLN,
                            ['OK'], [bEscape], mpErro);
@@ -1151,9 +1151,9 @@ begin
     IF (Lc_ValorPedido <> Lc_ValorParcelado ) AND
        ( Lc_ValorParcelado >0) THEN
     BEGIN
-      MensagemPadrao('MENSAGEM DE ERRO','A T E N ï¿½ ï¿½ O!.'+EOLN+EOLN+
-                     'O Valor do Pedido nï¿½o confere com Valor do Parcelamento.'+EOLN+
-                     'Refaï¿½a o parcelamento.'+EOLN,
+      MensagemPadrao('MENSAGEM DE ERRO','A T E N Ç Ã O!.'+EOLN+EOLN+
+                     'O Valor do Pedido não confere com Valor do Parcelamento.'+EOLN+
+                     'Refaça o parcelamento.'+EOLN,
                      ['OK'],[BESCAPE],MPERRO);
       Result := FALSE;
     end;

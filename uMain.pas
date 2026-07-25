@@ -1,4 +1,4 @@
-unit uMain;
+﻿unit uMain;
 
 interface
 
@@ -64,7 +64,6 @@ type
     pnl_top_Left: TPanel;
     Sb_Enviar: TSpeedButton;
     Sb_Receber: TSpeedButton;
-    rayAtualizartoken1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure MnuRestaurarClick(Sender: TObject);
     procedure MnuFecharClick(Sender: TObject);
@@ -243,14 +242,14 @@ begin
     Tm_Sync_At_Minut.Enabled := False;
     Tm_Sync_Interval.Interval := (Interval * 1000);
     LcInterval := TimeToStr( ( Time + Interval ) );
-    Lb_Processamento.Caption :=  (Concat('Processo parado e a pr�xima sincronia ser�  �s : ',LcInterval));
+    Lb_Processamento.Caption :=  (Concat('Processo parado e a próxima sincronia será  às : ',LcInterval));
     Tm_Sync_Interval.Enabled := True;
   End
   else
   Begin
     Tm_Sync_Interval.Enabled := false;
     Tm_Sync_At_Minut.Enabled := True;
-    Lb_Processamento.Caption :=  (Concat('Processo parado e a pr�xima sincronia ser� no minuto : ',NoMinuto));
+    Lb_Processamento.Caption :=  (Concat('Processo parado e a próxima sincronia será no minuto : ',NoMinuto));
   End;
 end;
 
@@ -571,12 +570,12 @@ begin
     StrPCopy(SzTip, Application.Title);
   end;
   Shell_NotifyIcon(NIM_ADD, @It_TrayIconData);
-  TmHide.Enabled := (Fc_Aq_Geral('L', 'SINCRONIA', 'AutoMinimize','S') = 'S');
+  TmHide.Enabled := (Fc_Aq_Geral('L', 'SISWEB', 'AutoMinimize','S') = 'S');
   Interval := 0;
   NoMinuto := '';
-  Interval := StrToIntDef(Fc_Aq_Geral('L','SINCRONIA', 'intervalo','21'),21);
+  Interval := StrToIntDef(Fc_Aq_Geral('L','SISWEB', 'intervalo','21'),21);
   if (Interval = 0) then
-    NoMinuto := FormatFloat('00',StrtoIntDef( Fc_Aq_Geral('L', 'SINCRONIA', 'nominuto','05'),5));
+    NoMinuto := FormatFloat('00',StrtoIntDef( Fc_Aq_Geral('L', 'SISWEB', 'nominuto','05'),5));
   pg_processo.ActivePage := tbs_Send;
   DefineTimerAtivo;
   //Prepara os componente
@@ -694,7 +693,7 @@ begin
       Transaction := DM.Qr_Crud.Transaction;
       ForcedRefresh := True;
       SQL.Clear;
-      SQL.Add('UPDATE TB_CRP_ITENS SET CPI_CODIGO =:CPI_CODIGO WHERE (CPI_SABOR = :CPI_SABOR) AND (CPI_CODPRO =:CPI_CODPRO);  ' );
+      SQL.Add(Script);
       if (DM.Qr_Crud.Transaction.InTransaction) then DM.Qr_Crud.Transaction.Commit;
     end;
   Finally
@@ -732,38 +731,44 @@ procedure TPrincipal.MnuPreparaLocalClick(Sender: TObject);
 begin
   if validaAcesso then
   Begin
+    // Usa o DM GLOBAL (criado no .dpr). A versao antiga criava um segundo
+    // TDM por cima da variavel global e o destruia no Finally - o resto do
+    // app (timers/sincronia) ficava com o DataModule morto e tudo falhava
+    // depois de "Preparar Local".
+    if not DM.IBD_Gestao.Connected then DM.ConectaBancoLocal;
+    if not DM.IBD_Gestao.Connected then
+    Begin
+      ShowMessage('Nao foi possivel conectar no banco local.' + sLineBreak +
+                  'Configure o caminho do banco em Tarefas > Configuracoes e tente novamente.');
+      Exit;
+    End;
+    DM.setBDCrud(DM.IBD_Gestao);
     Try
-      DM  := TDM.Create(Application);
-      if VerificaConectaBanco(True,Fc_Aq_Geral('L','SINCRONIA', 'BDPathBDLocal','')) then
+      if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
+      changeLocal;
+      if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
+
+      // Bootstrap completo (tabelas de controle, DELETED universal,
+      // EXTERNALCODE e triggers TG_SRC_*) - mesmo caminho do start
+      // automatico (decisoes 1-10 do prompt de construcao do banco).
+      // Erros aparecem aqui (no start automatico vao para o log).
+      DM.EnsureSincronia;
+
+      if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
+      AjustaGenerator;
+      if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
+
+      if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
+      execGenerator;
+      if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
+
+      ShowMessage('Banco preparado com sucesso!');
+    Except
+      on E: Exception do
       Begin
-        dm.setBDCrud(dm.IBD_Gestao);
-        if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
-        changeLocal;
-        if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
-
-        // Bootstrap completo (tabelas de controle, DELETED universal,
-        // EXTERNALCODE e triggers TG_SRC_*) - mesmo caminho do start
-        // automatico (decisoes 1-10 do prompt de construcao do banco).
-        DM.EnsureSincronia;
-
-        if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
-        AjustaGenerator;
-        if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
-
-        if not DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.StartTransaction;
-        execGenerator;
-        if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Commit;
-
-
-
-        ShowMessage('Ajustes executados no Local com sucesso!!');
+        if DM.IBT_Atualiza.InTransaction then DM.IBT_Atualiza.Rollback;
+        ShowMessage('Falha ao preparar o banco: ' + E.Message);
       End;
-    Finally
-      if DM.IBD_Gestao.Connected then
-        DM.IBD_Gestao.Connected := False;
-      if DM.IBD_Servidor.Connected then
-        DM.IBD_Servidor.Connected := False;
-      DM.DisposeOf;
     End;
   end;
 end;

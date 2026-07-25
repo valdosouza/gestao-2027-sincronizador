@@ -107,7 +107,9 @@ procedure TDM.ConectaBancoLocal;
 var
    LcPAth : String;
 begin
-  LcPAth := Fc_Aq_Geral('L','SINCRONIA', 'BDPathBDLocal','');
+  // Secao unificada com a tela de configuracao (tas_config grava em [SISWEB];
+  // a leitura antiga em [SINCRONIA] fazia o path vir vazio no start)
+  LcPAth := Fc_Aq_Geral('L','SISWEB', 'BDPathBDLocal','');
   IBD_Gestao.Connected := False;
   IBD_Gestao.Params.Clear;
   IBD_Gestao.Params.Add('user_name=SYSDBA');

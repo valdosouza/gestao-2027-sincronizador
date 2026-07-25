@@ -58,16 +58,14 @@ end;
 
 procedure TSincroniza.execute;
 Var
-  LcInstitutionOrigem : Integer;
   LcUrl : String;
-  LcCnpj : String;
   LcApiKey : String;
 begin
+  // D12: institution/CNPJ nao sao mais configurados no cliente - o servidor
+  // resolve institution/schema pela X-Api-Key.
   FReceiveFromWEb     := ( Fc_Aq_Geral('L','SISWEB', 'ReceiveWebServer','S') = 'S');
   FSendToWEb          := ( Fc_Aq_Geral('L','SISWEB', 'SendToWebServer','S') = 'S');
-  LcInstitutionOrigem := StrToIntDef(Fc_Aq_Geral('L','SISWEB', 'institution_origem','1'),1);
   LcUrl               := Fc_Aq_Geral('L', 'SISWEB', 'FPathURL','0');
-  LcCnpj              := Fc_Aq_Geral('L','SISWEB', 'CNPJ','');
   // D12 (revisão do sincronizador): chave de instalação — cadastrada em
   // setes_central.tb_sync_api_key, configurada aqui junto com a URL.
   LcApiKey            := Fc_Aq_Geral('L','SISWEB', 'FApiKey','');
@@ -79,8 +77,6 @@ begin
     ReceiveFromWeb := TReceiveFromWebServer.Create(self);
     ReceiveFromWeb.ListBox := FListBoxReceive;
     ReceiveFromWeb.progresso := FProgresso;
-    ReceiveFromWeb.InstiturionOrigem := LcInstitutionOrigem;
-    ReceiveFromWeb.CNPJ := LcCnpj;
     ReceiveFromWeb.URL := LcUrl;
     ReceiveFromWeb.ApiKey := LcApiKey;
     ReceiveFromWeb.Database := DM.IBD_Gestao;
@@ -100,8 +96,6 @@ begin
     SendToWeb := TSendToWebServer.Create(self);
     SendToWeb.ListBox := FListBoxSend;
     SendToWeb.progresso := FProgresso;
-    SendToWeb.InstiturionOrigem := LcInstitutionOrigem;
-    SendToWeb.CNPJ := LcCnpj;
     SendToWeb.URL := LcUrl;
     SendToWeb.ApiKey := LcApiKey;
     SendToWeb.Database := DM.IBD_Gestao;

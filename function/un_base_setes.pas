@@ -16,19 +16,15 @@ type
       procedure setFDatabase               (const Value: TIBDatabase);
       procedure setFListbox                (const Value: TListBox);
       procedure setFDevice                 (const Value: Integer);
-      procedure setFCNPJ                   (const Value: String);
       procedure setFURL                    (const Value: String);
       procedure setFApiKey                 (const Value: String);
-      procedure setFInstiturionOrigem      (const Value: Integer);
 
     protected
-      FCNPJ: String;
       FURL: String;
       // D12 (revisão do sincronizador): chave de instalação (SISWEB\FApiKey no
       // registro), threaded até TGeneralWeb.ApiKey em cada classe de envio.
       FApiKey: String;
       FInstitutionDestino: Integer;
-      FInstiturionOrigem: Integer;
       FlistBox: TListBox;
       FDevice: Integer;
       FListaSincronia : TControllerListaSincronia;
@@ -60,10 +56,8 @@ type
 
       property Database : TIBDatabase read FDatabase write setFDatabase;
 
-      property InstiturionOrigem : Integer read FInstiturionOrigem write setFInstiturionOrigem;
       property ListBox           : TListBox read FlistBox write setFListbox;
       property Device            : Integer read FDevice write setFDevice;
-      property CNPJ              : String read FCNPJ write setFCNPJ;
       property URL               : String read FURL write setFURL;
       property ApiKey            : String read FApiKey write setFApiKey;
   End;
@@ -136,11 +130,6 @@ begin
   inherited;
 end;
 
-procedure TBaseSetes.setFCNPJ(const Value: String);
-begin
-  FCNPJ := Value;
-end;
-
 procedure TBaseSetes.setFApiKey(const Value: String);
 begin
   FApiKey := Value;
@@ -157,11 +146,6 @@ begin
   FDevice := Value;
 end;
 
-
-procedure TBaseSetes.setFInstiturionOrigem(const Value: Integer);
-begin
-  FInstiturionOrigem := Value;
-end;
 
 procedure TBaseSetes.setFListbox(const Value: TListBox);
 begin
@@ -218,7 +202,6 @@ end;
 function TBaseSetes.ValidaConexao: boolean;
 begin
   REsult := True;
-  FInstiturionOrigem := 1;
   FInstitutionDestino := 7756;
 end;
 

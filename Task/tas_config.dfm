@@ -199,24 +199,10 @@ inherited TasConfig: TTasConfig
         TabOrder = 0
         object Label4: TLabel
           Left = 5
-          Top = 126
+          Top = 82
           Width = 70
           Height = 13
           Caption = 'Intervalo(Seg)'
-        end
-        object Label1: TLabel
-          Left = 5
-          Top = 85
-          Width = 73
-          Height = 13
-          Caption = 'Estab. Desktop'
-        end
-        object Label5: TLabel
-          Left = 119
-          Top = 85
-          Width = 25
-          Height = 13
-          Caption = 'CNPJ'
         end
         object Label2: TLabel
           AlignWithMargins = True
@@ -233,7 +219,7 @@ inherited TasConfig: TTasConfig
         end
         object Label3: TLabel
           Left = 86
-          Top = 127
+          Top = 83
           Width = 55
           Height = 13
           Caption = 'No minuto :'
@@ -249,19 +235,19 @@ inherited TasConfig: TTasConfig
           Caption = 'URL da API'
           ExplicitWidth = 54
         end
-        object Label6: TLabel
-          Left = 248
-          Top = 85
-          Width = 26
-          Height = 13
-          Caption = 'Porta'
-        end
         object Label11: TLabel
           Left = 326
           Top = 85
           Width = 40
           Height = 13
           Caption = 'Terminal'
+        end
+        object Lb_ApiKey: TLabel
+          Left = 8
+          Top = 131
+          Width = 124
+          Height = 13
+          Caption = 'Chave da API (X-Api-Key)'
         end
         object ChBx_IniciarWindows: TCheckBox
           AlignWithMargins = True
@@ -271,25 +257,7 @@ inherited TasConfig: TTasConfig
           Height = 17
           Align = alBottom
           Caption = 'Iniciar o programa com o Windows'
-          TabOrder = 9
-        end
-        object E_institution_origem: TEdit
-          Left = 5
-          Top = 100
-          Width = 108
-          Height = 21
-          NumbersOnly = True
-          TabOrder = 2
-          Text = '0'
-        end
-        object E_CNPJ: TEdit
-          Left = 119
-          Top = 101
-          Width = 125
-          Height = 21
-          NumbersOnly = True
-          TabOrder = 3
-          Text = '07.742.094.0001-13'
+          TabOrder = 6
         end
         object E_Path_BD_Local: TEdit
           AlignWithMargins = True
@@ -303,33 +271,33 @@ inherited TasConfig: TTasConfig
         end
         object E_Intervalo: TEdit
           Left = 4
-          Top = 143
+          Top = 99
           Width = 73
           Height = 21
           Alignment = taCenter
-          TabOrder = 6
+          TabOrder = 3
           Text = '0'
         end
         object E_NoMinuto: TEdit
           Left = 83
-          Top = 143
+          Top = 99
           Width = 65
           Height = 21
           Alignment = taCenter
           ReadOnly = True
-          TabOrder = 7
+          TabOrder = 4
           Text = '5'
         end
         object UpD_Intervalor: TUpDown
           Left = 148
-          Top = 143
+          Top = 99
           Width = 16
           Height = 21
           Associate = E_NoMinuto
           Max = 60
           Increment = 5
           Position = 5
-          TabOrder = 10
+          TabOrder = 7
           Thousands = False
         end
         object Chbx_AutoMinimize: TCheckBox
@@ -340,7 +308,7 @@ inherited TasConfig: TTasConfig
           Height = 17
           Align = alBottom
           Caption = 'Minimizar automaticamente ap'#243's abrir'
-          TabOrder = 8
+          TabOrder = 5
         end
         object E_Path_url: TEdit
           AlignWithMargins = True
@@ -352,23 +320,21 @@ inherited TasConfig: TTasConfig
           Align = alTop
           TabOrder = 1
         end
-        object E_Porta: TEdit
-          Left = 247
-          Top = 101
-          Width = 73
-          Height = 21
-          Alignment = taCenter
-          TabOrder = 4
-          Text = '0'
-        end
         object E_Terminal: TEdit
           Left = 326
           Top = 101
           Width = 108
           Height = 21
           NumbersOnly = True
-          TabOrder = 5
+          TabOrder = 2
           Text = '0'
+        end
+        object E_ApiKey: TEdit
+          Left = 5
+          Top = 147
+          Width = 446
+          Height = 21
+          TabOrder = 8
         end
       end
     end
@@ -405,7 +371,7 @@ inherited TasConfig: TTasConfig
         Top = 0
         Width = 456
         Height = 360
-        ActivePage = tbs_SistemaWeb_Geral
+        ActivePage = TabSheet3
         Align = alClient
         TabOrder = 0
         object tbs_SistemaWeb_Geral: TTabSheet
@@ -491,10 +457,6 @@ inherited TasConfig: TTasConfig
             object TabSheet4: TTabSheet
               Caption = 'Per'#237'odo'
               ImageIndex = 2
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object Panel6: TPanel
                 Left = 0
                 Top = 0
