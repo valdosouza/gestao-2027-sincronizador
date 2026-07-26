@@ -25,7 +25,7 @@ type
 
   TTasConfig = class(TBaseForm)
     pnl_rodape: TPanel;
-    SpeedButton1: TSpeedButton;
+    Sb_primeira_carga: TSpeedButton;
     Sb_Close: TSpeedButton;
     pg_Principal: TPageControl;
     tbs_conexao: TTabSheet;
@@ -78,7 +78,7 @@ type
     Lb_ApiKey: TLabel;
     E_ApiKey: TEdit;
     procedure Sb_CloseClick(Sender: TObject);
-    procedure SpeedButton1Click(Sender: TObject);
+    procedure Sb_primeira_cargaClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormatScreen;Override;
     procedure Chbx_ReceiveLocalServerClick(Sender: TObject);
@@ -95,7 +95,21 @@ type
     procedure preencheListaTabelas(Lista:TCheckListBox);
     procedure ShowExcecoes;
     procedure SalvaExcecoes;
-    //First Charge
+    //First Charge (2026-07-26): a lista e o processamento agora sao
+    // DIRIGIDOS pela TB_LISTA_SINCRONIA (WAY='E', SET_ON='S' — exatamente
+    // as tabelas contempladas no envio); a carga e um INSERT set-based na
+    // fila TB_SINCRONIA (sem loop de UPDATE linha a linha — era isso que
+    // travava a tela em tabelas grandes).
+    // pDestino recebe 1 linha por tabela no formato TABELA=CAMPO, na ordem
+    // de SEQ — o MESMO carregamento alimenta a checklist e o processamento
+    // (alinhamento por indice, sem mapeamento magico).
+    procedure CarregaCatalogoPrimeiraCarga(pDestino: TStrings; pRotulos: TStrings);
+    procedure preencheListaPrimeiraCarga;
+    { ================= MORTOS (2026-07-26) =================
+      As Fc_*/FC_* abaixo eram a primeira carga antiga (getList + update
+      linha a linha para disparar trigger — lenta, travava a UI e a lista
+      de 45 indices nao batia com o catalogo real). Substituidas pelo
+      fluxo acima; remover declaracoes E implementacoes na proxima faxina. }
     procedure Fc_Colaborador;
     procedure Fc_FormaPagto;
     procedure Fc_ContaBancaria;
@@ -1122,10 +1136,81 @@ end;
 procedure TTasConfig.FormShow(Sender: TObject);
 begin
   pg_Principal.ActivePage := tbs_conexao;
-  preencheListaTabelas(ChLBx_First_Charge);
+  // Primeira carga alinhada ao catalogo de envio (TB_LISTA_SINCRONIA)
+  preencheListaPrimeiraCarga;
   preencheListaTabelas(ChLBx_Excecoes_Envio);
   preencheListaTabelas(ChLBx_Excecoes_Recebo);
   ShowConfig;
+end;
+
+procedure TTasConfig.CarregaCatalogoPrimeiraCarga(pDestino: TStrings; pRotulos: TStrings);
+Var
+  LcQry     : TIBQuery;
+  LcTabela  : String;
+  LcProcesso: String;
+begin
+  pDestino.Clear;
+  if Assigned(pRotulos) then pRotulos.Clear;
+  LcQry := TIBQuery.Create(nil);
+  Try
+    with LcQry do
+    Begin
+      Database    := DM.Qr_Crud.Database;
+      Transaction := DM.Qr_Crud.Transaction;
+      ForcedRefresh := True;
+      sql.Clear;
+      // Uma linha por TABELA (TB_PEDIDO/TB_NOTA_FISCAL tem N fluxos no
+      // catalogo, mas a fila TB_SINCRONIA e por tabela+chave)
+      sql.Add(concat(
+                'SELECT DESC_TABELA, MAX(DESC_FIELD) DESC_FIELD, ',
+                '       MAX(DESC_PROCESS) DESC_PROCESS, COUNT(*) QTDE, MIN(SEQ) SEQ ',
+                'FROM TB_LISTA_SINCRONIA ',
+                'WHERE WAY = ''E'' AND SET_ON = ''S'' ',
+                '  AND DESC_FIELD IS NOT NULL AND DESC_FIELD <> '''' ',
+                'GROUP BY DESC_TABELA ',
+                'ORDER BY 5 '
+        ));
+      Active := True;
+      FetchAll;
+      First;
+      while not Eof do
+      Begin
+        LcTabela := Trim(FieldByName('DESC_TABELA').AsString);
+        pDestino.Add(concat(LcTabela, '=', Trim(FieldByName('DESC_FIELD').AsString)));
+        if Assigned(pRotulos) then
+        Begin
+          if FieldByName('QTDE').AsInteger > 1 then
+            LcProcesso := 'todos os fluxos da tabela'
+          else
+            LcProcesso := Trim(FieldByName('DESC_PROCESS').AsString);
+          pRotulos.Add(concat(LcTabela, '  -  ', LcProcesso));
+        End;
+        Next;
+      End;
+    End;
+  Finally
+    LcQry.Close;
+    LcQry.DisposeOf;
+  End;
+end;
+
+procedure TTasConfig.preencheListaPrimeiraCarga;
+Var
+  LcCatalogo : TStringList;
+  LcRotulos  : TStringList;
+  I          : Integer;
+begin
+  ChLBx_First_Charge.Clear;
+  LcCatalogo := TStringList.Create;
+  LcRotulos  := TStringList.Create;
+  Try
+    CarregaCatalogoPrimeiraCarga(LcCatalogo, LcRotulos);
+    for I := 0 to LcRotulos.Count - 1 do
+      ChLBx_First_Charge.Items.Add(LcRotulos[I]);
+  Finally
+    LcCatalogo.DisposeOf;
+    LcRotulos.DisposeOf;
+  End;
 end;
 
 
@@ -1302,7 +1387,7 @@ begin
   Close;
 end;
 
-procedure TTasConfig.SpeedButton1Click(Sender: TObject);
+procedure TTasConfig.Sb_primeira_cargaClick(Sender: TObject);
 begin
   if validaConfig then
   Begin
@@ -1313,56 +1398,51 @@ begin
 end;
 
 procedure TTasConfig.Sb_IntoQuueClick(Sender: TObject);
+Var
+  LcCatalogo : TStringList;
+  I          : Integer;
+  LcTabela   : String;
+  LcCampo    : String;
+  LcTotal    : Integer;
 begin
+  // Primeira carga NOVA (2026-07-26): para cada tabela marcada, UM INSERT
+  // set-based coloca todas as chaves na fila TB_SINCRONIA (mesmo formato
+  // que as triggers TG_SRC_* geram; TG_SINCRONIA da o SRC_CODIGO). O ciclo
+  // de envio consome a fila normalmente (SRC_LOG vazio = pendente).
+  // Substitui o loop de UPDATE linha a linha que TRAVAVA a tela.
   Try
-    self.Enabled := false;
-     inherited;
-    //USUARIO
-    //CARGO
-    if ChLBx_First_Charge.Checked[2]  then Fc_Colaborador;
-    if ChLBx_First_Charge.Checked[3]  then Fc_FormaPagto;
-    if (ChLBx_First_Charge.Checked[4]) or (ChLBx_First_Charge.Checked[5]) then
-    Begin
-      Fc_GrupoToCategoria;
+    Self.Enabled := False;
+    LcTotal := 0;
+    LcCatalogo := TStringList.Create;
+    Try
+      // Mesma consulta/ordem que alimentou a checklist — alinhado por indice
+      CarregaCatalogoPrimeiraCarga(LcCatalogo, nil);
+      for I := 0 to LcCatalogo.Count - 1 do
+      Begin
+        if (I >= ChLBx_First_Charge.Items.Count) or
+           (not ChLBx_First_Charge.Checked[I]) then Continue;
+        LcTabela := LcCatalogo.Names[I];
+        LcCampo  := LcCatalogo.ValueFromIndex[I];
+        Lb_Web_Process.Caption := concat('Colocando na fila: ', LcTabela);
+        Application.ProcessMessages;
+        DM.ExecComando(concat(
+          'INSERT INTO TB_SINCRONIA ',
+          '(SRC_CODIGO, SRC_TABELA, SRC_CHAVE, SRC_OPER, SRC_REGISTRO, SRC_TIME) ',
+          'SELECT 0, ''', LcTabela, ''', ''', LcCampo, ''', ''I'', ',
+          LcCampo, ', CURRENT_TIMESTAMP FROM ', LcTabela
+        ));
+        Inc(LcTotal);
+      End;
+    Finally
+      LcCatalogo.DisposeOf;
     End;
-    if ChLBx_First_Charge.Checked[6]  then Fc_Marca;
-    if ChLBx_First_Charge.Checked[7]  then Fc_Medida;
-    if ChLBx_First_Charge.Checked[8]  then Fc_Embalagem;
-    if ChLBx_First_Charge.Checked[9]  then Fc_Produto;
-    if ChLBx_First_Charge.Checked[10] then Fc_Estoques;
-    if ChLBx_First_Charge.Checked[11] then Fc_Estoque;
-    if ChLBx_First_Charge.Checked[12] then Fc_TabelaPreco;
-    if ChLBx_First_Charge.Checked[13] then Fc_Preco;
-    if ChLBx_First_Charge.Checked[14] then Fc_Cliente;
-    if ChLBx_First_Charge.Checked[15] then Fc_ContaBancaria;
-    if ChLBx_First_Charge.Checked[16] then Fc_fornecedor;
-    if ChLBx_First_Charge.Checked[17] then Fc_categoria;
-    if ChLBx_First_Charge.Checked[18] then Fc_ProductImages;
-    if ChLBx_First_Charge.Checked[19] then Fc_Promotion;
-    if ChLBx_First_Charge.Checked[20] then Fc_PlanoContas;
-    if ChLBx_First_Charge.Checked[21] then Fc_PedidoCompra;
-    if ChLBx_First_Charge.Checked[22] then Fc_PedidoVenda;
-    if ChLBx_First_Charge.Checked[23] then Fc_PedidoAjuste;
-    if ChLBx_First_Charge.Checked[24] then Fc_NotasMercadoria;
-    if ChLBx_First_Charge.Checked[25] then Fc_NotasAvulsa;
-    if ChLBx_First_Charge.Checked[26] then FC_MovimentoEstoque;
-    if ChLBx_First_Charge.Checked[27] then Fc_Financeiro;
-    if ChLBx_First_Charge.Checked[28] then FC_MovimentoFinanceiro;
-    if ChLBx_First_Charge.Checked[29] then FC_ControleCaixa;
-    if ChLBx_First_Charge.Checked[30] then FC_RetornoNFe;
-    if ChLBx_First_Charge.Checked[31] then FC_RetornoNFCe;
-   // if ChLBx_First_Charge.Checked[32] then FC_RetornoNFSe;
-    if ChLBx_First_Charge.Checked[33] then FC_CartaCorrecao;
-    if ChLBx_First_Charge.Checked[34] then FC_Arquivos;
-    // [35] Consignacao: sem processo de carga (corpo era vazio).
-    // [36..41] Modulo restaurante APOSENTADO (D23 da revisao do sincronizador)
-    // - itens permanecem na lista so para nao deslocar os indices salvos.
-    // [42] OPCIONAIS BORDA - TESTE: disparava Fc_HIstoricoBancario por engano
-    // (bug de indice) - removido.
-    if ChLBx_First_Charge.Checked[43] then Fc_HIstoricoBancario;
-    if ChLBx_First_Charge.Checked[44] then Fc_Cashier;
+    Lb_Web_Process.Caption := '';
+    ShowMessage(concat(
+      'Primeira carga: ', IntToStr(LcTotal),
+      ' tabela(s) colocada(s) na fila de sincronia.', sLineBreak,
+      'O envio acontece no proximo ciclo do sincronizador.'));
   Finally
-    Self.Enabled := true;
+    Self.Enabled := True;
   End;
 end;
 

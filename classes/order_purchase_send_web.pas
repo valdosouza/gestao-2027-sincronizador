@@ -40,7 +40,10 @@ Var
   LcItems       : TJSONArray;
   LcItem        : TJSONObject;
   LcTotalizer   : TJSONObject;
+  LcUser        : TJSONObject;
   LcProviderDoc : String;
+  LcUserDoc     : String;
+  LcUserExt     : String;
   I             : Integer;
 begin
   inherited;
@@ -102,6 +105,18 @@ begin
         LcTotalizer.AddPair('expensesValue', TJSONNumber.Create(FCtrl.Registro.ValorOutrasDEspesas));
         LcTotalizer.AddPair('totalValue', TJSONNumber.Create(FCtrl.Registro.ValorPedido));
         LcJson.AddPair('totalizer', LcTotalizer);
+
+        // AUTOR (prompt_indexacao_usuario_firebird.md): PED_CODUSU pela
+        // cascata; sem referencia o bloco nao viaja (fallback na web).
+        if DM.GetUserSyncRef(FCtrl.Registro.Usuario, LcUserDoc, LcUserExt) then
+        Begin
+          LcUser := TJSONObject.Create;
+          if LcUserDoc <> '' then
+            LcUser.AddPair('userDocument', LcUserDoc)
+          else
+            LcUser.AddPair('userExternalCode', LcUserExt);
+          LcJson.AddPair('user', LcUser);
+        End;
 
         FStrJson := LcJson.ToJSON;
       Finally

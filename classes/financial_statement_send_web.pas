@@ -35,8 +35,11 @@ end;
 
 procedure TFinancialStatementSendWeb.GenerateJson;
 Var
-  LcJson   : TJSONObject;
-  LcFuture : String;
+  LcJson    : TJSONObject;
+  LcUser    : TJSONObject;
+  LcFuture  : String;
+  LcUserDoc : String;
+  LcUserExt : String;
 begin
   inherited;
   FCtrl.Registro.Codigo := FCodigo;
@@ -76,7 +79,19 @@ begin
       LcJson.AddPair('financialPlansIdCre', TJSONNumber.Create(FCtrl.Registro.PL_Credito));
       LcJson.AddPair('financialPlansIdDeb', TJSONNumber.Create(FCtrl.Registro.PL_Debito));
       LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_MOVIM_FINANCEIRO', 'MVF_CODIGO', FCodigo)); // decisao 8: le o DELETED real da tabela
-      // NÃO enviar Usuario/tb_user_id — servidor ignora e zera (campo supérfluo).
+
+      // AUTOR (prompt_indexacao_usuario_firebird.md, decisao 6): MVF_CODUSU
+      // resolvido pela cascata; sem referencia o bloco nao viaja
+      // (tb_user_id fica 0 sentinela na web).
+      if DM.GetUserSyncRef(FCtrl.Registro.Usuario, LcUserDoc, LcUserExt) then
+      Begin
+        LcUser := TJSONObject.Create;
+        if LcUserDoc <> '' then
+          LcUser.AddPair('userDocument', LcUserDoc)
+        else
+          LcUser.AddPair('userExternalCode', LcUserExt);
+        LcJson.AddPair('user', LcUser);
+      End;
 
       FStrJSon := LcJson.ToJSON;
     Finally

@@ -34,7 +34,10 @@ end;
 
 procedure TCashierSendWeb.GenerateJson;
 Var
-  LcJson : TJSONObject;
+  LcJson    : TJSONObject;
+  LcUser    : TJSONObject;
+  LcUserDoc : String;
+  LcUserExt : String;
 begin
   inherited;
     FCtrl.Registro.Codigo := FCodigo;
@@ -43,7 +46,10 @@ begin
     Begin
       // Contrato novo REMOVEU o bloco "items" (fechamento por forma de
       // pagamento passou a ter endpoint próprio na onda de movimento
-      // financeiro) e não envia tb_userid (usuário local não viaja — D3).
+      // financeiro). AUTOR (prompt_indexacao_usuario_firebird.md, decisao
+      // 6): o usuario do caixa viaja no bloco `user` (cascata via
+      // DM.GetUserSyncRef); sem referencia o bloco nao viaja (tb_userid
+      // fica NULL na web).
       LcJson := TJSONObject.Create;
       Try
         LcJson.AddPair('id', TJSONNumber.Create(FCtrl.Registro.Codigo));
@@ -58,6 +64,16 @@ begin
         else
           LcJson.AddPair('hrEnd', FormatDateTime('yyyy-mm-dd hh:nn:ss', FCtrl.Registro.Fechamento));
         LcJson.AddPair('deleted', DM.GetDeletedFlag('TB_CASHIER', 'ID', FCodigo)); // decisao 8: le o DELETED real da tabela
+
+        if DM.GetUserSyncRef(FCtrl.Registro.Usuario, LcUserDoc, LcUserExt) then
+        Begin
+          LcUser := TJSONObject.Create;
+          if LcUserDoc <> '' then
+            LcUser.AddPair('userDocument', LcUserDoc)
+          else
+            LcUser.AddPair('userExternalCode', LcUserExt);
+          LcJson.AddPair('user', LcUser);
+        End;
 
         FStrJSon := LcJson.ToJSON;
       Finally

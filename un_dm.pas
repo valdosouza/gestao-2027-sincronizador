@@ -47,7 +47,6 @@ type
     function  CampoExiste(const ANomeTabela, ANomeCampo: String): Boolean;
     function  GeneratorExiste(const ANomeGenerator: String): Boolean;
     procedure EnsureSincroniaTable;
-    procedure DropSyncTable;
     procedure EnsureListaSincroniaTable;
     procedure SeedListaSincroniaIfEmpty;
     procedure EnsureDeletedColumns;
@@ -63,10 +62,24 @@ type
     // Le o flag DELETED real do registro (decisao 8) - usado pelas classes
     // *_send_web para montar o payload; 'N' quando registro/coluna ausente.
     function GetDeletedFlag(const pTabela, pCampoChave: String; pCodigo: Integer): String;
+    // Indexacao do AUTOR (prompt_indexacao_usuario_firebird.md, decisao 2):
+    // resolve USU_CODIGO para a referencia do bloco `user` dos movimentos.
+    // Cascata: colaborador vinculado com CPF/CNPJ VALIDO -> pDocumento;
+    // colaborador sem doc -> TB_COLABORADOR.EXTERNALCODE; sem colaborador ->
+    // TB_USUARIO.EXTERNALCODE. Decisao 8 (PDV): com GbTerminal <> 0 so
+    // resolve por DOCUMENTO (EXTERNALCODE nao e replicado pela retaguarda) -
+    // sem doc o movimento viaja SEM bloco user (fallback da web).
+    // False = sem referencia disponivel neste ciclo (auto-heal).
+    function GetUserSyncRef(pUsuCodigo: Integer; var pDocumento, pExternalCode: String): Boolean;
   public
     // Gate (criterio de sucesso 2): a sincronizacao so e liberada quando o
     // bootstrap completou sem erro nesta execucao.
     BootstrapOk : Boolean;
+    // Indexador terminal (prompt_indexador_terminal_pdv.md, decisoes 1-3):
+    // numero do terminal desta instalacao, lido de SISWEB\TERMINAL no start.
+    // Convencao: 0 = Servidor Local/Base unica; 1..N = PDVs. Vai em TODOS os
+    // payloads de movimento (LcSendWeb.Terminal em un_send_to_web_server).
+    GbTerminal  : Integer;
   end;
 
 var
@@ -158,6 +171,9 @@ end;
 procedure TDM.DataModuleCreate(Sender: TObject);
 begin
   BootstrapOk := False;
+  // Decisao 1 do indexador terminal: fonte = registro SISWEB\TERMINAL
+  // (mesma secao de FApiKey/FPathURL; tela de config ja grava a chave).
+  GbTerminal := StrToIntDef(Fc_Aq_Geral('L', 'SISWEB', 'TERMINAL', '0'), 0);
   ConectaBancoLocal;
   ConectaBancoServidor;
   // Bootstrap completo do banco do cliente sem SQL manual (decisoes 1-10) -
@@ -280,13 +296,12 @@ begin
   );
 end;
 
-{ Passo 2 - TB_SYNC_TABLE removida por completo (decisao 1): o checkpoint
-  migrou para TB_LISTA_SINCRONIA.LAST_UPDATE. }
-procedure TDM.DropSyncTable;
-begin
-  if TabelaExiste('TB_SYNC_TABLE') then
-    ExecComando('DROP TABLE TB_SYNC_TABLE');
-end;
+{ TB_SYNC_TABLE: NUNCA tocar (decisao 4 do prompt_indexador_terminal_pdv.md,
+  2026-07-26 — REVERTE a decisao 1 do bootstrap). Ela e checkpoint vivo da
+  RETAGUARDA do Gestao2016 (ControllerRetaguardaSendToLocal/Un_Funcoes.
+  updateTableSync); o Sincronizador nao a usa, mas dropa-la destruia a
+  sincronia local Servidor x PDVs. O checkpoint DESTE processo segue em
+  TB_LISTA_SINCRONIA.LAST_UPDATE. }
 
 procedure TDM.EnsureListaSincroniaTable;
 begin
@@ -326,6 +341,11 @@ Var
   I   : Integer;
   Row : TSincroniaSeedRow;
 begin
+  // Modulo restaurante REMOVIDO do catalogo (Valdo, 2026-07-26): alem de
+  // nao semear, bancos ja semeados perdem as 7 linhas TB_REST_* aqui
+  // (idempotente - roda a cada start, DELETE de 0 linhas e no-op).
+  ExecComando('DELETE FROM TB_LISTA_SINCRONIA WHERE DESC_TABELA LIKE ''TB_REST_%''');
+
   if not TabelaVazia('TB_LISTA_SINCRONIA') then Exit;
 
   with Qr_Acao do
@@ -371,6 +391,17 @@ begin
       End;
     end;
   End;
+
+  // Perfil PDV (decisao 3 do indexador terminal): em terminal <> 0 os
+  // CADASTROS nascem desligados - eles chegam ao PDV pela retaguarda e
+  // seriam reenvio redundante; o PDV sincroniza so MOVIMENTO (Seq 17-29).
+  // Aplicado apenas no seed inicial (base recem-preparada); reativacao
+  // manual via UPDATE continua possivel.
+  if GbTerminal <> 0 then
+    ExecComando(
+      'UPDATE TB_LISTA_SINCRONIA SET SET_ON = ''N'' ' +
+      'WHERE (SEQ BETWEEN 1 AND 16) OR (SEQ IN (38, 39))'
+    );
 end;
 
 { Passo 5 - soft delete universal (decisao 8): DELETED CHAR(1) DEFAULT 'N'
@@ -423,6 +454,13 @@ begin
   Begin
     ExecComando('ALTER TABLE TB_COLABORADOR ADD EXTERNALCODE VARCHAR(36)');
     ExecComando('CREATE INDEX IDX_COLABORADOR_EXTERNALCODE ON TB_COLABORADOR (EXTERNALCODE)');
+  End;
+  // Decisao 1 da indexacao de usuarios (2026-07-26): usuario SEM colaborador
+  // (ex-funcionario inclusive) fecha o ciclo pelo proprio TB_USUARIO.
+  if not CampoExiste('TB_USUARIO','EXTERNALCODE') then
+  Begin
+    ExecComando('ALTER TABLE TB_USUARIO ADD EXTERNALCODE VARCHAR(36)');
+    ExecComando('CREATE INDEX IDX_USUARIO_EXTERNALCODE ON TB_USUARIO (EXTERNALCODE)');
   End;
 end;
 
@@ -496,7 +534,8 @@ procedure TDM.EnsureSincronia;
 begin
   BootstrapOk := False;
   EnsureSincroniaTable;        // passo 1 - fila + generator + trigger da PK
-  DropSyncTable;               // passo 2 - decisao 1
+  // passo 2 (DropSyncTable) REMOVIDO - decisao 4 do indexador terminal:
+  // TB_SYNC_TABLE pertence a retaguarda do Gestao2016 e fica intocada
   EnsureListaSincroniaTable;   // passo 3 - catalogo + LAST_UPDATE
   SeedListaSincroniaIfEmpty;
   EnsureDeletedColumns;        // passo 5 - decisao 8
@@ -531,6 +570,62 @@ begin
   );
   if not Qr_Crud.Eof then
     Result := Trim(Qr_Crud.FieldByName('EMP_CNPJ').AsString);
+end;
+
+function TDM.GetUserSyncRef(pUsuCodigo: Integer; var pDocumento, pExternalCode: String): Boolean;
+Var
+  LcDoc : String;
+  LcExt : String;
+begin
+  Result := False;
+  pDocumento := '';
+  pExternalCode := '';
+  if pUsuCodigo <= 0 then Exit;
+  try
+    // 1. Colaborador vinculado (TB_COLABORADOR.CLB_CODUSU)
+    ExecConsulta(
+      'SELECT CLB_CPF, EXTERNALCODE FROM TB_COLABORADOR ' +
+      'WHERE CLB_CODUSU = ' + IntToStr(pUsuCodigo)
+    );
+    if not Qr_Crud.Eof then
+    Begin
+      LcDoc := unMaskField(Trim(Qr_Crud.FieldByName('CLB_CPF').AsString));
+      if ((Length(LcDoc) = 11) and CalculoCpf(LcDoc)) or
+         ((Length(LcDoc) = 14) and CalculoCnpj(LcDoc)) then
+      Begin
+        pDocumento := LcDoc;
+        Exit(True);
+      End;
+      // Decisao 8 (PDV): EXTERNALCODE nao replica - so documento resolve la
+      if GbTerminal <> 0 then Exit(False);
+      LcExt := Trim(Qr_Crud.FieldByName('EXTERNALCODE').AsString);
+      if LcExt <> '' then
+      Begin
+        pExternalCode := LcExt;
+        Exit(True);
+      End;
+      // colaborador sem doc e ainda sem externalCode: segura o bloco ate o
+      // /salesman sincronizar (auto-heal - decisao 2)
+      Exit(False);
+    End;
+    // 2. Sem colaborador: EXTERNALCODE do proprio usuario (so no servidor)
+    if GbTerminal <> 0 then Exit(False);
+    ExecConsulta(
+      'SELECT EXTERNALCODE FROM TB_USUARIO WHERE USU_CODIGO = ' + IntToStr(pUsuCodigo)
+    );
+    if not Qr_Crud.Eof then
+    Begin
+      LcExt := Trim(Qr_Crud.FieldByName('EXTERNALCODE').AsString);
+      if LcExt <> '' then
+      Begin
+        pExternalCode := LcExt;
+        Result := True;
+      End;
+    End;
+  except
+    // coluna/tabela ausente (banco ainda nao preparado): sem referencia
+    Result := False;
+  end;
 end;
 
 procedure TDM.setBDCrud(BD: TIBDatabase);

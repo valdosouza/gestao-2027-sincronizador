@@ -61,6 +61,10 @@ begin
       LcSendWeb.InstitutionDestino := FInstitutionDestino;
       LcSendWeb.URL := FURL;
       LcSendWeb.ApiKey := FApiKey;
+      // Indexador terminal (decisoes 1-2): 0 = Servidor Local, 1..N = PDVs;
+      // dimensao das PKs de movimento na web (tb_order/tb_cashier/tb_invoice/
+      // tb_financial) - sem isso todos os terminais colidiriam no terminal 0.
+      LcSendWeb.Terminal := DM.GbTerminal;
       LcSendWeb.Metodo := 'Post';
       LcSendWeb.EndPoint := FListaSincronia.registro.endPoint;
       LcSendWeb.Inicializa;

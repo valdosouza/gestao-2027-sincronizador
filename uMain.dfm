@@ -971,6 +971,10 @@ object Principal: TPrincipal
     object tbs_Receive: TTabSheet
       Caption = 'Recebendo'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Lst_Process_Receive: TListBox
         Left = 0
         Top = 0
@@ -1007,7 +1011,7 @@ object Principal: TPrincipal
     Left = 184
     Top = 152
     Bitmap = {
-      494C0101030005001C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103000500200010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000000000000000000000000000000000000000000000000000CECE

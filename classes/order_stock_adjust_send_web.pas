@@ -40,7 +40,10 @@ Var
   LcAdjust     : TJSONObject;
   LcItems      : TJSONArray;
   LcItem       : TJSONObject;
+  LcUser       : TJSONObject;
   LcEntityDoc  : String;
+  LcUserDoc    : String;
+  LcUserExt    : String;
   I            : Integer;
 begin
   inherited;
@@ -95,6 +98,18 @@ begin
         LcItems.AddElement(LcItem);
       End;
       LcJson.AddPair('items', LcItems);
+
+      // AUTOR (prompt_indexacao_usuario_firebird.md): PED_CODUSU pela
+      // cascata; sem referencia o bloco nao viaja (fallback na web).
+      if DM.GetUserSyncRef(FCtrl.Registro.Usuario, LcUserDoc, LcUserExt) then
+      Begin
+        LcUser := TJSONObject.Create;
+        if LcUserDoc <> '' then
+          LcUser.AddPair('userDocument', LcUserDoc)
+        else
+          LcUser.AddPair('userExternalCode', LcUserExt);
+        LcJson.AddPair('user', LcUser);
+      End;
 
       FStrJson := LcJson.ToJSON;
     Finally

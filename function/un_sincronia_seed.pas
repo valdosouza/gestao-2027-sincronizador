@@ -3,10 +3,15 @@ unit un_sincronia_seed;
 { =====================================================================
   Catalogo de seed da TB_LISTA_SINCRONIA (Onda 0 da revisao do sync).
 
-  Fonte dos dados: uMain.pas (RegisterClass - 34 classes reais) +
-  controller/ControllerTrigger.pas (tabelas/campos confirmados no
-  codigo) + Infra-IA/setes-sync/CONTRATOS_SYNC.md (endpoints que
-  existem hoje na setes-sync, pos Ondas 1-6).
+  Fonte dos dados: uMain.pas (RegisterClass) + controller/
+  ControllerTrigger.pas (tabelas/campos confirmados no codigo) +
+  Infra-IA/setes-sync/CONTRATOS_SYNC.md (endpoints que existem hoje na
+  setes-sync, pos Ondas 1-6). Modulo restaurante (7 linhas TB_REST_*)
+  REMOVIDO do catalogo em 2026-07-26 (Valdo) - Seqs 31-37 reservados.
+
+  WAY: 'E' = Enviar (local -> web/retaguarda), 'R' = Receber (web ->
+  local, fase futura D16) - convencao do motor (ControllerListaSincronia:
+  getListaEnviar WHERE WAY='E' / getListaReceber WHERE WAY='R').
 
   Texto SEM acentuacao de proposito: o restante do projeto usa encoding
   ANSI/Windows-1252 (ver mojibake em general_web.pas) e este arquivo
@@ -34,7 +39,7 @@ type
   end;
 
 const
-  SINCRONIA_SEED: array[0..37] of TSincroniaSeedRow = (
+  SINCRONIA_SEED: array[0..31] of TSincroniaSeedRow = (
     // ---- 1-12: cadastros (ordem de prioridade D8) ----
     (Seq: 1;  Way: 'E'; DescTabela: 'TB_MARCA_PRODUTO'; Kind: 'CADASTRO';
      DescProcess: 'Marca de produto (catalogo central)'; DescField: 'MRC_CODIGO';
@@ -193,47 +198,22 @@ const
      Note: 'ACHADO DA ONDA 0: classe existe no Delphi mas o endpoint NAO foi implementado nas Ondas 1-6 - fica para a Rodada 4';
      SetOn: 'N'; ClassName: 'TInvoiceRectificationSendWeb'; EndPoint: '/invoice-rectification/sincronize'),
 
-    // ---- 31-37: modulo restaurante - APOSENTADO (decisao D23), NAO ATIVAR ----
-    (Seq: 31; Way: 'E'; DescTabela: 'TB_REST_GROUP'; Kind: 'RESTAURANTE';
-     DescProcess: 'Grupo de cardapio'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo (hipotese pelo nome da classe)';
-     SetOn: 'N'; ClassName: 'TRestGroupSendWeb'; EndPoint: ''),
-
-    (Seq: 32; Way: 'E'; DescTabela: 'TB_REST_SUBGROUP'; Kind: 'RESTAURANTE';
-     DescProcess: 'Subgrupo de cardapio'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestSubGroupSendWeb'; EndPoint: ''),
-
-    (Seq: 33; Way: 'E'; DescTabela: 'TB_REST_MENU'; Kind: 'RESTAURANTE';
-     DescProcess: 'Item de cardapio'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestMenuSendWeb'; EndPoint: ''),
-
-    (Seq: 34; Way: 'E'; DescTabela: 'TB_REST_GROUP_HAS_ATTRIBUTE'; Kind: 'RESTAURANTE';
-     DescProcess: 'Atributo do grupo'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestGroupHasAttributeSendWeb'; EndPoint: ''),
-
-    (Seq: 35; Way: 'E'; DescTabela: 'TB_REST_GROUP_HAS_MEASURE'; Kind: 'RESTAURANTE';
-     DescProcess: 'Medida do grupo'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestGroupHasMeasureSendWeb'; EndPoint: ''),
-
-    (Seq: 36; Way: 'E'; DescTabela: 'TB_REST_GROUP_HAS_OPTIONAL'; Kind: 'RESTAURANTE';
-     DescProcess: 'Opcional do grupo'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestGroupHasOptionalSendWeb'; EndPoint: ''),
-
-    (Seq: 37; Way: 'E'; DescTabela: 'TB_REST_MENU_HAS_INGREDIENTE'; Kind: 'RESTAURANTE';
-     DescProcess: 'Ingrediente do item'; DescField: '';
-     Note: 'D23 - APOSENTADO. Tabela de origem NAO confirmada em codigo';
-     SetOn: 'N'; ClassName: 'TRestMenuHasIngredienteSendWeb'; EndPoint: ''),
+    // ---- 31-37: modulo restaurante (D23) - REMOVIDO DO SEED (Valdo,
+    // 2026-07-26): as 7 linhas TB_REST_* nao serao utilizadas; alem de nao
+    // semear, o bootstrap DELETA as linhas de bancos ja semeados
+    // (un_dm.SeedListaSincroniaIfEmpty). Seqs 31-37 ficam RESERVADOS.
 
     // ---- 38: transportadora (decisao 4 da revisao de entidades 2026-07-25) ----
     (Seq: 38; Way: 'E'; DescTabela: 'TB_TRANSPORTADORA'; Kind: 'CADASTRO';
      DescProcess: 'Transportadora (cadeia central + papel)'; DescField: 'TRP_CODEMP';
      Note: 'Decisao 4 (2026-07-25) - fecha o 409 CARRIER_NOT_SYNCED eterno do customer; sincronizar ANTES do cliente';
-     SetOn: 'S'; ClassName: 'TCarrierSendWeb'; EndPoint: '/carrier/sincronize')
+     SetOn: 'S'; ClassName: 'TCarrierSendWeb'; EndPoint: '/carrier/sincronize'),
+
+    // ---- 39: usuario/autor (prompt_indexacao_usuario_firebird.md 2026-07-26) ----
+    (Seq: 39; Way: 'E'; DescTabela: 'TB_USUARIO'; Kind: 'CADASTRO';
+     DescProcess: 'Usuario do sistema (autor das operacoes)'; DescField: 'USU_CODIGO';
+     Note: 'Decisoes 1-3 (2026-07-26) - entity + tb_user sem credencial; cascata colaborador->externalCode; perfil PDV desliga (decisao 8)';
+     SetOn: 'S'; ClassName: 'TUserSendWeb'; EndPoint: '/user/sincronize')
   );
 
 implementation

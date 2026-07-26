@@ -42,8 +42,11 @@ Var
   LcItem        : TJSONObject;
   LcTotalizer   : TJSONObject;
   LcBilling     : TJSONObject;
+  LcUser        : TJSONObject;
   LcCustomerDoc : String;
   LcSalesmanDoc : String;
+  LcUserDoc     : String;
+  LcUserExt     : String;
   LcPlots       : String;
   LcDeadline    : String;
   I             : Integer;
@@ -124,6 +127,20 @@ begin
         LcBilling.AddPair('plots', LcPlots);
         LcBilling.AddPair('deadline', LcDeadline);
         LcJson.AddPair('billing', LcBilling);
+
+        // AUTOR (prompt_indexacao_usuario_firebird.md): PED_CODUSU resolvido
+        // pela cascata (documento do colaborador > externalCode); sem
+        // referencia disponivel o bloco nao viaja e a web usa o fallback
+        // de transicao (decisoes 2/5/8).
+        if DM.GetUserSyncRef(FCtrl.Registro.Usuario, LcUserDoc, LcUserExt) then
+        Begin
+          LcUser := TJSONObject.Create;
+          if LcUserDoc <> '' then
+            LcUser.AddPair('userDocument', LcUserDoc)
+          else
+            LcUser.AddPair('userExternalCode', LcUserExt);
+          LcJson.AddPair('user', LcUser);
+        End;
 
         FStrJson := LcJson.ToJSON;
       Finally

@@ -1,7 +1,4 @@
-﻿[SpeedButton1]
-Coordinates=309,193,84,33
-
-[Sb_Close]
+﻿[Sb_Close]
 Coordinates=238,193,61,33
 
 []
@@ -9,4 +6,7 @@ Coordinates=128,71,66,51
 
 [pnl_rodape]
 Coordinates=89,10,47,51
+
+[Sb_primeira_carga]
+Coordinates=309,193,84,33
 

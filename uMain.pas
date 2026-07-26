@@ -19,7 +19,7 @@ uses
   category_send_web,file_send_web,financial_plans_send_web,financial_statement_send_web,
   financial_send_web,invoice_send_web,invoice_merchandise_send_web,
   invoice_rectification_send_web,invoice_return_55_send_web,invoice_return_65_send_web,
-  invoice_return_service_send_web,carrier_send_web,
+  invoice_return_service_send_web,carrier_send_web,user_send_web,
   order_purchase_send_web,order_sale_send_web,order_stock_adjust_send_web,
    promotion_send_web,
   salesman_send_web,
@@ -107,6 +107,10 @@ type
 
     function existTabela(Tabela : String):Boolean;
     function existField(Tabela,campo : String):Boolean;
+    // Preparar Local e idempotente: o ALTER ... ADD PRIMARY KEY so pode
+    // rodar quando a tabela ainda NAO tem PK (2a execucao dava
+    // "Attempt to define a second PRIMARY KEY" no dialog do tryExecIBSQL)
+    function existPrimaryKey(Tabela : String):Boolean;
 
     procedure ExecutaLimpezaDiaria;
     procedure FinalizarAplicacao;
@@ -234,6 +238,36 @@ begin
     result := (recordCount > 0);
   End;
 end;
+
+function TPrincipal.existPrimaryKey(Tabela : String):Boolean;
+Var
+  LcQry : TIBQuery;
+begin
+  LcQry := TIBQuery.Create(nil);
+  Try
+    with LcQry do
+    Begin
+      Database    := DM.Qr_Crud.Database;
+      Transaction := DM.Qr_Crud.Transaction;
+      ForcedRefresh := True;
+      sql.Clear;
+      sql.Add(concat(
+                'select 1 ',
+                'from rdb$relation_constraints ',
+                'where rdb$relation_name =:TABELA ',
+                'and rdb$constraint_type = ''PRIMARY KEY'' '
+        ));
+      ParamByName('TABELA').AsString := Tabela;
+      Active := True;
+      FetchAll;
+      result := (recordCount > 0);
+    End;
+  Finally
+    LcQry.Close;
+    LcQry.DisposeOf;
+  end;
+end;
+
 procedure TPrincipal.DefineTimerAtivo;
 Var
   LcInterval : String;
@@ -510,7 +544,10 @@ begin
   End;
 
 
-  if existTabeLA('TB_GESTAO_WEB') then
+  // PK so na PRIMEIRA vez: reexecutar o Preparar Local num banco que ja tem
+  // a PK dava "Attempt to define a second PRIMARY KEY" (dialog do
+  // tryExecIBSQL) — o Firebird recusa e nada e alterado, mas assusta.
+  if existTabeLA('TB_GESTAO_WEB') and (not existPrimaryKey('TB_GESTAO_WEB')) then
   Begin
     with DM.IBSQL do
     Begin
@@ -711,9 +748,10 @@ begin
 end;
 
 {
- Terminal = 0 - � o servidor Web
- Terminal = 1 - � o servidor Local
- Terminal = x - PDVs e Disposivos moveis
+ Convencao CANONICA do terminal (prompt_indexador_terminal_pdv.md, decisao 1):
+ Terminal = 0    - Servidor Local / Base unica
+ Terminal = 1..N - PDVs e dispositivos moveis
+ Fonte: registro SISWEB\TERMINAL (carregado em DM.GbTerminal no start).
 }
 
 
@@ -793,7 +831,7 @@ begin
     AtivaInterface(True);
     FSincronia.DisposeOf;
     chbx_setTimeTo.Checked := False;
-    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execu��o.....';
+    Lb_Processamento.Caption := 'Processo de Sincronia - Aguarde parando a execução.....';
     Lb_Processamento.Update;
   except
     on E: Exception do
@@ -1030,6 +1068,7 @@ initialization
   RegisterClass(TStockBalanceSendWeb);
   RegisterClass(TStockListSendWeb);
   RegisterClass(TStockStatementSendWeb);
+  RegisterClass(TUserSendWeb); // indexacao de usuarios (2026-07-26)
   // Modulo restaurante APOSENTADO (decisao D23 da revisao do sincronizador,
   // Infra-IA/setes-sync/prompt_revisao_sincronizador_setes_sync.md) - os
   // 7 arquivos rest_*_send_web.pas nao existem mais no projeto (nem a
@@ -1069,6 +1108,7 @@ finalization
   UnRegisterClass(TStockBalanceSendWeb);
   UnRegisterClass(TStockListSendWeb);
   UnRegisterClass(TStockStatementSendWeb);
+  UnRegisterClass(TUserSendWeb); // indexacao de usuarios (2026-07-26)
 
 
 end.

@@ -18,7 +18,7 @@ inherited TasConfig: TTasConfig
     DesignSize = (
       464
       66)
-    object SpeedButton1: TSpeedButton
+    object Sb_primeira_carga: TSpeedButton
       Left = 262
       Top = 6
       Width = 95
@@ -85,7 +85,7 @@ inherited TasConfig: TTasConfig
         BFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBFBF0000}
       Layout = blGlyphTop
       ParentFont = False
-      OnClick = SpeedButton1Click
+      OnClick = Sb_primeira_cargaClick
       ExplicitLeft = 243
     end
     object Sb_Close: TSpeedButton
@@ -183,7 +183,7 @@ inherited TasConfig: TTasConfig
     Top = 0
     Width = 464
     Height = 424
-    ActivePage = tbs_conexao
+    ActivePage = tbs_sistema_web
     Align = alClient
     TabOrder = 1
     object tbs_conexao: TTabSheet
@@ -371,7 +371,7 @@ inherited TasConfig: TTasConfig
         Top = 0
         Width = 456
         Height = 360
-        ActivePage = TabSheet3
+        ActivePage = tbs_sistema_web_send
         Align = alClient
         TabOrder = 0
         object tbs_SistemaWeb_Geral: TTabSheet
